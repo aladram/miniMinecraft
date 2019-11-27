@@ -1,0 +1,50 @@
+# Project definition
+cmake_minimum_required(VERSION 3.12)
+project(opengl-demo)
+
+set(CMAKE_CXX_STANDARD 17)
+
+set(BIN_NAME "${PROJECT_NAME}")
+set(LIB_DIR "libs")
+
+add_custom_command(OUTPUT vertex_shader.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/src/vertex.shd
+		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/vertex.shd vertex_shader.c)
+add_custom_command(OUTPUT fragment_shader.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/src/fragment.shd
+		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/fragment.shd fragment_shader.c)
+
+add_executable(${BIN_NAME}
+		vertex_shader.c
+		fragment_shader.c
+		src/main.cc
+		src/my-shaders.cc
+		src/utils/shaders.cc
+		src/window.cc)
+target_include_directories(${BIN_NAME} PRIVATE "include/")
+target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=4 OPENGL_VERSION_MINOR=5)
+target_compile_options(${BIN_NAME} PRIVATE -Wall -Wextra -O0 -g3)
+
+# GLFW
+set(GLFW_DIR "${LIB_DIR}/glfw")
+set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "Build the GLFW example programs")
+set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "Build the GLFW test programs")
+set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "Build the GLFW documentation")
+set(GLFW_INSTALL OFF CACHE INTERNAL "Generate installation target")
+add_subdirectory("${GLFW_DIR}")
+target_link_libraries(${BIN_NAME} "glfw" "${GLFW_LIBRARIES}")
+target_include_directories(${BIN_NAME} PRIVATE "${GLFW_DIR}/include")
+target_compile_definitions(${BIN_NAME} PRIVATE "GLFW_INCLUDE_NONE")
+
+# glad
+set(GLAD_DIR "${LIB_DIR}/glad")
+add_library(glad "${GLAD_DIR}/src/glad.c")
+target_include_directories(glad PUBLIC "${GLAD_DIR}/include")
+target_link_libraries(${BIN_NAME} "glad" "${CMAKE_DL_LIBS}")
+
+# glm
+target_include_directories(${BIN_NAME} PRIVATE "${LIB_DIR}/glm/")
+
+# assimp
+add_subdirectory("${LIB_DIR}/assimp" EXCLUDE_FROM_ALL)
+target_link_libraries(${BIN_NAME} assimp::assimp)
