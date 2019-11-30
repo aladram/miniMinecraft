@@ -25,18 +25,29 @@ static std::string get_path(const std::string& path) {
 
 int main()
 {
-    auto window = setup_window("Transparency (OpenGL)");
+    auto window = setup_window("OpenGL demo");
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("Failed to initialize GLAD");
 
-    // Enable opengl_demo
     glEnable(GL_DEPTH_TEST);
 
     program program{compile_my_shaders()};
-
     program.use();
+#if 0
     program.put("my_texture", 0);
+#endif
+
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f,  0.5f, 0.0f
+    };
+
+    unsigned int my_vbo;
+    glGenBuffers(1, &my_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, my_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glm::mat4 projection = glm::perspective(
             glm::radians(45.f),
