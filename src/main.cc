@@ -44,10 +44,21 @@ int main()
         0.0f,  0.5f, 0.0f
     };
 
-    unsigned int my_vbo;
+    GLuint my_vbo;
     glGenBuffers(1, &my_vbo);
+
+    GLuint my_vao;
+    glGenVertexArrays(1, &my_vao);
+
+    glBindVertexArray(my_vao);
     glBindBuffer(GL_ARRAY_BUFFER, my_vbo);
+
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     glm::mat4 projection = glm::perspective(
             glm::radians(45.f),
@@ -74,6 +85,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         program.use();
+        glBindVertexArray(my_vao);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 #if 0
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
