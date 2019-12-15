@@ -13,10 +13,14 @@ add_custom_command(OUTPUT vertex_shader.c
 add_custom_command(OUTPUT fragment_shader.c
 		DEPENDS ${CMAKE_SOURCE_DIR}/src/fragment.shd
 		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/fragment.shd fragment_shader.c)
+add_custom_command(OUTPUT container_jpg.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/res/container.jpg
+		COMMAND ${CMAKE_SOURCE_DIR}/export_file.sh ${CMAKE_SOURCE_DIR}/res/container.jpg container_jpg.c)
 
 add_executable(${BIN_NAME}
 		vertex_shader.c
 		fragment_shader.c
+        container_jpg.c
 		src/main.cc
 		src/my-shaders.cc
 		src/utils/shaders.cc
@@ -48,3 +52,9 @@ target_include_directories(${BIN_NAME} PRIVATE "${LIB_DIR}/glm/")
 # assimp
 add_subdirectory("${LIB_DIR}/assimp" EXCLUDE_FROM_ALL)
 target_link_libraries(${BIN_NAME} assimp::assimp)
+
+# stb
+set(STB_DIR "${LIB_DIR}/stb")
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE "${STB_DIR}")
+target_link_libraries(${BIN_NAME} "stb")
