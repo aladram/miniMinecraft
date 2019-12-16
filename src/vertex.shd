@@ -4,8 +4,10 @@ layout (location = 1) in vec2 uv;
 
 out vec2 uv_f;
 
+uniform mat4 view_proj_mat;
+
 void main()
 {
-    gl_Position = vec4(pos, 1.0);
+    gl_Position = view_proj_mat * vec4(pos, 1.0);
     uv_f = uv;
 }

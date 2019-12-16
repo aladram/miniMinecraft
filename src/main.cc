@@ -80,15 +80,44 @@ int main()
     program.use();
 
     float vertices[] = {
-        // positions         // texture coords
-        0.5f,  0.5f, 0.0f,   1.0f, 1.0f,   // top right
-        0.5f, -0.5f, 0.0f,   1.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f    // top left
+        // positions          // texture coords
+
+        // Front face
+        0.5f,  0.5f, -0.5f,   0.0f, 1.0f,   // top right
+        0.5f, -0.5f, -0.5f,   0.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,    // top left
+
+        // Back face
+        0.5f,  0.5f, 0.5f,    1.0f, 1.0f,   // top right
+        0.5f, -0.5f, 0.5f,    1.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.5f,   0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.5f,   0.0f, 1.0f    // top left
     };
-    unsigned indices[] = {  // note that we start from 0!
+    unsigned indices[] = {
+        // Front face
         0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+        1, 2, 3,   // second triangle
+
+        // Left face
+        4, 5, 0,
+        5, 1, 0,
+
+        // Back face
+        7, 6, 4,
+        6, 5, 4,
+
+        // Right face
+        3, 2, 7,
+        2, 6, 7,
+
+        // Top face
+        4, 0, 7,
+        0, 3, 7,
+
+        // Bottom face
+        1, 5, 2,
+        5, 6, 2
     };
 
     GLuint my_vao = generate_vao(vertices, sizeof(vertices), indices, sizeof(indices));
@@ -105,22 +134,32 @@ int main()
       generate_texture(container_jpg_buf, container_jpg_buf_len);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    glm::mat4 projection = glm::perspective(
-            glm::radians(45.f),
-            (float)SCR_WIDTH / (float)SCR_HEIGHT,
-            0.1f,
-            100.0f
-        );
-    glm::mat4 view = glm::lookAt(
-            glm::vec3(0.f, 0.f, 0.f),
-            glm::vec3(0.f, 0.f, -1.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
-
-    program.put("proj_view_mat", projection * view);
-
     while (!glfwWindowShouldClose(window))
     {
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, glm::radians(25.0f), glm::vec3(1.0f, 0.5f, 0.25f));
+
+        glm::mat4 projection = glm::perspective(
+                glm::radians(70.f),
+                (float)width / (float)height,
+                0.1f,
+                100.0f
+            );
+
+        glm::mat4 view = glm::lookAt(
+                glm::vec3(-2.f, 1.f, -2.f),
+                glm::vec3(0.5f, -0.5f, 0.5f),
+                glm::vec3(0.f, 1.f, 0.f)
+            );
+        //glm::mat4 view = glm::mat4(1.0f);
+        // note that we're translating the scene in the reverse direction of where we want to move
+        //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); 
+
+        program.put("view_proj_mat", projection * view * model);
+
         float currentFrame = glfwGetTime();
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
