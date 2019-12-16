@@ -136,11 +136,13 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        float t = glfwGetTime();
+
         int width, height;
         glfwGetWindowSize(window, &width, &height);
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(25.0f), glm::vec3(1.0f, 0.5f, 0.25f));
+        model = glm::rotate(model, glm::radians(25.0f + 10 * t), glm::vec3(1.0f, 0.5f, 0.25f));
 
         glm::mat4 projection = glm::perspective(
                 glm::radians(70.f),
@@ -160,17 +162,14 @@ int main()
 
         program.put("view_proj_mat", projection * view * model);
 
-        float currentFrame = glfwGetTime();
-        float deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        float deltaTime = t - lastFrame;
+        lastFrame = t;
 
         process_input(window, deltaTime);
 
         // Blue sky background
         glClearColor(135.f / 255.f, 206.f / 255.f, 235.f / 255.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        float t = glfwGetTime();
 
         program.use();
         program.put("color", glm::vec4(0.f, (sin(t) / 2.0f) + 0.5f, 0.f, 0.f));
