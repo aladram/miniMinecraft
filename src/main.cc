@@ -175,7 +175,7 @@ int main()
         program.put("color", glm::vec4(0.f, (sin(t) / 2.0f) + 0.5f, 0.f, 0.f));
         glBindTexture(GL_TEXTURE_2D, my_texture);
         glBindVertexArray(my_vao);
-        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(*indices), GL_UNSIGNED_INT, 0);
+        glDrawElementsInstanced(GL_TRIANGLES, sizeof(indices) / sizeof(*indices), GL_UNSIGNED_INT, 0, 10);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
