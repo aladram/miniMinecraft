@@ -21,6 +21,7 @@ extern "C" {
 #include <opengl-demo/my-shaders.hh>
 #include <opengl-demo/program.hh>
 #include <opengl-demo/window.hh>
+#include <opengl-demo/utils/opengl_utils.hh>
 
 using namespace opengl_demo;
 
@@ -65,6 +66,22 @@ static GLuint generate_texture(void *buf, unsigned buf_size)
     stbi_image_free(data);
 }
 
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+    if (type != GL_DEBUG_TYPE_ERROR)
+        return;
+    fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
 int main()
 {
     auto window = setup_window("OpenGL demo");
@@ -73,6 +90,8 @@ int main()
         throw std::runtime_error("Failed to initialize GLAD");
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, 0);
 
     program program{compile_my_shaders()};
     program.use();
@@ -117,8 +136,42 @@ int main()
         1, 5, 2,
         5, 6, 2
     };
+    std::vector<glm::vec3> positions = {
+        { 0, 0, 0 },
+        { 0, 0, 1 },
+        { 0, 0, 2 },
+        { 0, 0, 3 },
+        { 0, 1, 0 },
+        { 0, 1, 1 },
+        { 0, 1, 2 },
+        { 0, 2, 0 },
+        { 0, 2, 1 },
+        { 0, 3, 0 },
+        { 1, 0, 0 },
+        { 1, 0, 1 },
+        { 1, 0, 2 },
+        { 1, 1, 0 },
+        { 1, 1, 1 },
+        { 1, 2, 0 },
+        { 2, 0, 0 },
+        { 2, 0, 1 },
+        { 2, 1, 0 },
+        { 3, 0, 0 }
+    };
 
     GLuint my_vao = generate_vao(vertices, sizeof(vertices), indices, sizeof(indices));
+
+    GLuint positions_vbo;
+    glGenBuffers(1, &positions_vbo);
+
+    glBindVertexArray(my_vao);
+      glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), NULL);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glEnableVertexAttribArray(2);
+      glVertexAttribDivisor(2, 1);
+    glBindVertexArray(0);
 
     GLuint my_texture;
     glGenTextures(1, &my_texture);
@@ -178,7 +231,7 @@ int main()
         program.put("color", glm::vec4(0.f, (sin(t) / 2.0f) + 0.5f, 0.f, 0.f));
         glBindTexture(GL_TEXTURE_2D, my_texture);
         glBindVertexArray(my_vao);
-        glDrawElementsInstanced(GL_TRIANGLES, sizeof(indices) / sizeof(*indices), GL_UNSIGNED_INT, 0, 5);
+        glDrawElementsInstanced(GL_TRIANGLES, sizeof(indices) / sizeof(*indices), GL_UNSIGNED_INT, 0, positions.size());
 
         glfwSwapBuffers(window);
         glfwPollEvents();

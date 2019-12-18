@@ -1,6 +1,7 @@
 #version 450 core
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec2 uv;
+layout (location = 2) in vec3 off;
 
 out vec2 uv_f;
 
@@ -9,6 +10,6 @@ uniform mat4 view_proj;
 
 void main()
 {
-    gl_Position = view_proj * (transformation * vec4(pos, 1.0) + vec4(0, (gl_InstanceID - 2) * 1.1, 0, 0));
+    gl_Position = view_proj * (transformation * vec4(pos, 1.0) + vec4(off, 0));
     uv_f = uv;
 }
