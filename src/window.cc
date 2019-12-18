@@ -3,28 +3,20 @@
 extern "C" {
 #include <err.h>
 }
+#include <cfloat>
 #include <cstdlib>
 #include <stdexcept>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#if 0
-#include <learnopengl/camera.h>
-#endif
 
 #include <opengl-demo/camera.hh>
 
 using namespace opengl_demo;
 
-#if 0
-bool firstMouse = true;
-
-Camera opengl_demo::camera(glm::vec3(0.0f, 0.0f, 3.0f));
-#endif
-
 typename opengl_demo::camera opengl_demo::camera{
     glm::vec3(-3.f, 0.f, -3.f),
-    glm::normalize(- glm::vec3(-3.f, 0.f, -3.f)),
+    glm::vec3(1.f, 0.f, 0.f),
     glm::vec3(0.f, 1.f, 0.f)
 };
 
@@ -49,40 +41,37 @@ void opengl_demo::process_input(GLFWwindow *window, float dt)
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+    (void)window;
+
     glViewport(0, 0, width, height);
 }
 
 static void mouse_callback(GLFWwindow* window, double x, double y)
 {
-    constexpr float lambda = 0.04f;
+    (void)window;
 
-    static float yaw = 0.f;
-    static float pitch = 0.f;
-    static float x_prev = x;
-    static float y_prev = y;
+    constexpr float max_yaw = M_PI / 2.f - 0.5f;
+    constexpr float min_yaw = - max_yaw;
+    constexpr float lambda = 0.001f;
+
+    static float x_prev = x, y_prev = y;
+    static float yaw = M_PI / 4, pitch = 0;
 
     float dx = x - x_prev;
     float dy = - (y - y_prev);
 
     x_prev = x;
     y_prev = y;
-
+    
     yaw += lambda * dx;
-    pitch = std::max(-89.f, std::min(89.f, pitch + lambda * dy));
+    pitch = std::max(min_yaw, std::min(max_yaw, pitch + lambda * dy));
 
     camera.forward_ = glm::normalize(glm::vec3(
-            cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-            sin(glm::radians(pitch)),
-            sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+            std::cos(yaw) * std::cos(pitch),
+            std::sin(pitch),
+            std::sin(yaw) * std::cos(pitch)
         ));
 }
-
-#if 0
-static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    camera.ProcessMouseScroll(yoffset);
-}
-#endif
 
 void glfw_error_callback(int, const char *description)
 {
@@ -103,12 +92,16 @@ GLFWwindow* opengl_demo::setup_window(const char* title)
 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    /*
+     * MacOS compatibility
+     * c.f. https://www.khronos.org/opengl/wiki/OpenGL_Context#Forward_compatibility
+     */
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, title, NULL, NULL);
-    if (window == NULL)
+    if (!window)
     {
         glfwTerminate();
         std::exit(EXIT_FAILURE);
@@ -117,9 +110,6 @@ GLFWwindow* opengl_demo::setup_window(const char* title)
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
-#if 0
-    glfwSetScrollCallback(window, scroll_callback);
-#endif
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
