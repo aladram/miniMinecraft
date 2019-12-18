@@ -12,6 +12,8 @@ extern "C" {
 #include <learnopengl/camera.h>
 #endif
 
+#include <opengl-demo/camera.hh>
+
 using namespace opengl_demo;
 
 #if 0
@@ -22,21 +24,27 @@ bool firstMouse = true;
 Camera opengl_demo::camera(glm::vec3(0.0f, 0.0f, 3.0f));
 #endif
 
-void opengl_demo::process_input(GLFWwindow *window, float deltaTime)
+typename opengl_demo::camera opengl_demo::camera{
+    glm::vec3(-3.f, 0.f, -3.f),
+    - glm::vec3(-3.f, 0.f, -3.f),
+    glm::vec3(0.f, 1.f, 0.f)
+};
+
+void opengl_demo::process_input(GLFWwindow *window, float dt)
 {
+    // Exit on ESC press
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-#if 0
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
-#endif
+    float lambda = 2.f * dt;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.position += lambda * camera.forward();
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.position -= lambda * camera.forward();
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.position -= lambda * camera.right();
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.position += lambda * camera.right();
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)

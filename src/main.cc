@@ -27,8 +27,6 @@ using namespace opengl_demo;
 extern unsigned char container_jpg_buf[0];
 extern unsigned int container_jpg_buf_len;
 
-float lastFrame = 0.0f;
-
 static GLuint generate_vao(float *vertices, size_t vertices_size, unsigned *indices, size_t indices_size)
 {
     GLuint my_vao, my_vbo, my_ebo;
@@ -122,7 +120,7 @@ int main()
 
     GLuint my_vao = generate_vao(vertices, sizeof(vertices), indices, sizeof(indices));
 
-    unsigned int my_texture;
+    GLuint my_texture;
     glGenTextures(1, &my_texture);
 
     glBindTexture(GL_TEXTURE_2D, my_texture);
@@ -134,6 +132,8 @@ int main()
       generate_texture(container_jpg_buf, container_jpg_buf_len);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    float t_prev = glfwGetTime();
+
     while (!glfwWindowShouldClose(window))
     {
         float t = glfwGetTime();
@@ -142,7 +142,7 @@ int main()
         glfwGetWindowSize(window, &width, &height);
 
         glm::mat4 transformation = glm::mat4(1.0f);
-        transformation = glm::rotate(transformation, glm::radians(25.0f + 10 * t), glm::vec3(1.0f, 0.5f, 0.25f));
+        //transformation = glm::rotate(transformation, glm::radians(25.0f + 10 * t), glm::vec3(1.0f, 0.5f, 0.25f));
 
         glm::mat4 projection = glm::perspective(
                 glm::radians(70.f),
@@ -151,11 +151,13 @@ int main()
                 100.0f
             );
 
+        /*const float r = 6.f;
         glm::mat4 view = glm::lookAt(
-                glm::vec3(-2.f, 1.f, -2.f),
-                glm::vec3(0.5f, -0.5f, 0.5f),
+                glm::vec3(-r * cos(t), 1.f, -r * sin(t)),
+                glm::vec3(0.f, 0.f, 0.f),
                 glm::vec3(0.f, 1.f, 0.f)
-            );
+            );*/
+        glm::mat4 view = camera.look_at();
         //glm::mat4 view = glm::mat4(1.0f);
         // note that we're translating the scene in the reverse direction of where we want to move
         //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); 
@@ -163,10 +165,10 @@ int main()
         program.put("transformation", transformation);
         program.put("view_proj", projection * view);
 
-        float deltaTime = t - lastFrame;
-        lastFrame = t;
+        float dt = t - t_prev;
+        t_prev = t;
 
-        process_input(window, deltaTime);
+        process_input(window, dt);
 
         // Blue sky background
         glClearColor(135.f / 255.f, 206.f / 255.f, 235.f / 255.f, 1.0f);
@@ -176,7 +178,7 @@ int main()
         program.put("color", glm::vec4(0.f, (sin(t) / 2.0f) + 0.5f, 0.f, 0.f));
         glBindTexture(GL_TEXTURE_2D, my_texture);
         glBindVertexArray(my_vao);
-        glDrawElementsInstanced(GL_TRIANGLES, sizeof(indices) / sizeof(*indices), GL_UNSIGNED_INT, 0, 10);
+        glDrawElementsInstanced(GL_TRIANGLES, sizeof(indices) / sizeof(*indices), GL_UNSIGNED_INT, 0, 5);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

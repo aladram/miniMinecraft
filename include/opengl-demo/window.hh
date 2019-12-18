@@ -2,11 +2,11 @@
 
 #include <GLFW/glfw3.h>
 
+#include <opengl-demo/camera.hh>
+
 namespace opengl_demo
 {
-#if 0
-    extern Camera camera;
-#endif
+    extern camera camera;
 
     constexpr int SCR_WIDTH = 1280;
     constexpr int SCR_HEIGHT = 720;

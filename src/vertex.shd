@@ -9,6 +9,6 @@ uniform mat4 view_proj;
 
 void main()
 {
-    gl_Position = view_proj * (transformation * vec4(pos, 1.0) + vec4(gl_InstanceID * 0.05, 0, 0, 0));
+    gl_Position = view_proj * (transformation * vec4(pos, 1.0) + vec4(0, (gl_InstanceID - 2) * 1.1, 0, 0));
     uv_f = uv;
 }
