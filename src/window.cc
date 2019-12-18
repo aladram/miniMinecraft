@@ -17,8 +17,6 @@ extern "C" {
 using namespace opengl_demo;
 
 #if 0
-float lastX = (float)SCR_WIDTH / 2.0;
-float lastY = (float)SCR_HEIGHT / 2.0;
 bool firstMouse = true;
 
 Camera opengl_demo::camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -26,25 +24,27 @@ Camera opengl_demo::camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 typename opengl_demo::camera opengl_demo::camera{
     glm::vec3(-3.f, 0.f, -3.f),
-    - glm::vec3(-3.f, 0.f, -3.f),
+    glm::normalize(- glm::vec3(-3.f, 0.f, -3.f)),
     glm::vec3(0.f, 1.f, 0.f)
 };
 
 void opengl_demo::process_input(GLFWwindow *window, float dt)
 {
+    constexpr float lambda = 2.f;
+
     // Exit on ESC press
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    float lambda = 2.f * dt;
+    float lambda_t = lambda * dt;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.position += lambda * camera.forward();
+        camera.position += lambda_t * camera.forward();
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.position -= lambda * camera.forward();
+        camera.position -= lambda_t * camera.forward();
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camera.position -= lambda * camera.right();
+        camera.position -= lambda_t * camera.right();
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.position += lambda * camera.right();
+        camera.position += lambda_t * camera.right();
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -52,25 +52,32 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-#if 0
-static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+static void mouse_callback(GLFWwindow* window, double x, double y)
 {
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
+    constexpr float lambda = 0.04f;
 
-    float xoffset = xpos - lastX;
-    float yoffset = -(ypos - lastY);
+    static float yaw = 0.f;
+    static float pitch = 0.f;
+    static float x_prev = x;
+    static float y_prev = y;
 
-    lastX = xpos;
-    lastY = ypos;
+    float dx = x - x_prev;
+    float dy = - (y - y_prev);
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    x_prev = x;
+    y_prev = y;
+
+    yaw += lambda * dx;
+    pitch = std::max(-89.f, std::min(89.f, pitch + lambda * dy));
+
+    camera.forward_ = glm::normalize(glm::vec3(
+            cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+            sin(glm::radians(pitch)),
+            sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+        ));
 }
 
+#if 0
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
@@ -109,8 +116,8 @@ GLFWwindow* opengl_demo::setup_window(const char* title)
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-#if 0
     glfwSetCursorPosCallback(window, mouse_callback);
+#if 0
     glfwSetScrollCallback(window, scroll_callback);
 #endif
 
