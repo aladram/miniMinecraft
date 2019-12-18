@@ -141,8 +141,8 @@ int main()
         int width, height;
         glfwGetWindowSize(window, &width, &height);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(25.0f + 10 * t), glm::vec3(1.0f, 0.5f, 0.25f));
+        glm::mat4 transformation = glm::mat4(1.0f);
+        transformation = glm::rotate(transformation, glm::radians(25.0f + 10 * t), glm::vec3(1.0f, 0.5f, 0.25f));
 
         glm::mat4 projection = glm::perspective(
                 glm::radians(70.f),
@@ -160,7 +160,8 @@ int main()
         // note that we're translating the scene in the reverse direction of where we want to move
         //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); 
 
-        program.put("view_proj_mat", projection * view * model);
+        program.put("transformation", transformation);
+        program.put("view_proj", projection * view);
 
         float deltaTime = t - lastFrame;
         lastFrame = t;

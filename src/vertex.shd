@@ -4,10 +4,11 @@ layout (location = 1) in vec2 uv;
 
 out vec2 uv_f;
 
-uniform mat4 view_proj_mat;
+uniform mat4 transformation;
+uniform mat4 view_proj;
 
 void main()
 {
-    gl_Position = view_proj_mat * vec4(pos, 1.0) - vec4(gl_InstanceID, 0, 0, 0);
+    gl_Position = view_proj * (transformation * vec4(pos, 1.0) + vec4(gl_InstanceID * 0.05, 0, 0, 0));
     uv_f = uv;
 }
