@@ -22,6 +22,7 @@ extern "C" {
 #include <opengl-demo/my-shaders.hh>
 #include <opengl-demo/program.hh>
 #include <opengl-demo/window.hh>
+#include <opengl-demo/primitives/cube.hh>
 #include <opengl-demo/world/block.hh>
 #include <opengl-demo/utils/opengl_utils.hh>
 
@@ -29,90 +30,6 @@ using namespace opengl_demo;
 
 extern unsigned char terrain_png_buf[0];
 extern unsigned int terrain_png_buf_len;
-
-static GLuint generate_cube_vao()
-{
-    float data[] = {
-        // Vertices     // UVs
-
-        // Face 1 (front)
-        // Triangle 1
-        0.f, 0.f, 0.f,     0.f, 0.f,
-        0.f, 0.f, 1.f,     1.f, 0.f,
-        0.f, 1.f, 1.f,     1.f, 1.f,
-        // Triangle 2               
-        0.f, 0.f, 0.f,     0.f, 0.f,
-        0.f, 1.f, 1.f,     1.f, 1.f,
-        0.f, 1.f, 0.f,     0.f, 1.f,
-                                    
-        // Face 2 (right)           
-        // Triangle 1               
-        0.f, 0.f, 1.f,     0.f, 0.f,
-        1.f, 0.f, 1.f,     1.f, 0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,
-        // Triangle 2               
-        0.f, 0.f, 1.f,     0.f, 0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,
-        0.f, 1.f, 1.f,     0.f, 1.f,
-                                    
-        // Face 3 (back)            
-        // Triangle 1               
-        1.f, 0.f, 1.f,     0.f, 0.f,
-        1.f, 0.f, 0.f,     1.f, 0.f,
-        1.f, 1.f, 0.f,     1.f, 1.f,
-        // Triangle 2               
-        1.f, 0.f, 1.f,     0.f, 0.f,
-        1.f, 1.f, 0.f,     1.f, 1.f,
-        1.f, 1.f, 1.f,     0.f, 1.f,
-                                    
-        // Face 4 (left)            
-        // Triangle 1               
-        1.f, 0.f, 0.f,     0.f, 0.f,
-        0.f, 0.f, 0.f,     1.f, 0.f,
-        0.f, 1.f, 0.f,     1.f, 1.f,
-        // Triangle 2               
-        1.f, 0.f, 0.f,     0.f, 0.f,
-        0.f, 1.f, 0.f,     1.f, 1.f,
-        1.f, 1.f, 0.f,     0.f, 1.f,
-                                    
-        // Face 5 (top)             
-        // Triangle 1               
-        0.f, 1.f, 0.f,     0.f, 0.f,
-        0.f, 1.f, 1.f,     1.f, 0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,
-        // Triangle 2               
-        0.f, 1.f, 0.f,     0.f, 0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,
-        1.f, 1.f, 0.f,     0.f, 1.f,
-                                    
-        // Face 6 (bottom)     
-        // Triangle 1               
-        1.f, 0.f, 0.f,     0.f, 0.f,
-        1.f, 0.f, 1.f,     1.f, 0.f,
-        0.f, 0.f, 1.f,     1.f, 1.f,
-        // Triangle 2               
-        1.f, 0.f, 0.f,     0.f, 0.f,
-        0.f, 0.f, 1.f,     1.f, 1.f,
-        0.f, 0.f, 0.f,     0.f, 1.f
-    };
-
-    GLuint my_vao, my_vbo, my_ebo;
-    glGenVertexArrays(1, &my_vao);
-    glGenBuffers(1, &my_vbo);
-    glGenBuffers(1, &my_ebo);
-
-    glBindVertexArray(my_vao);
-      glBindBuffer(GL_ARRAY_BUFFER, my_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    return my_vao;
-}
 
 static void generate_texture(void *buf, unsigned buf_size)
 {
@@ -162,26 +79,26 @@ int main()
     program.use();
 
     std::vector<block> positions = {
-        { { 0, 0, 0 }, 0 },
-        { { 0, 0, 1 }, 0 },
-        { { 0, 0, 2 }, 0 },
-        { { 0, 0, 3 }, 0 },
-        { { 0, 1, 0 }, 0 },
-        { { 0, 1, 1 }, 0 },
-        { { 0, 1, 2 }, 0 },
-        { { 0, 2, 0 }, 0 },
-        { { 0, 2, 1 }, 0 },
-        { { 0, 3, 0 }, 0 },
-        { { 1, 0, 0 }, 0 },
-        { { 1, 0, 1 }, 0 },
-        { { 1, 0, 2 }, 0 },
-        { { 1, 1, 0 }, 0 },
-        { { 1, 1, 1 }, 0 },
-        { { 1, 2, 0 }, 0 },
-        { { 2, 0, 0 }, 0 },
-        { { 2, 0, 1 }, 0 },
-        { { 2, 1, 0 }, 0 },
-        { { 3, 0, 0 }, 0 }
+        { { 0, 0, 0 }, { 35, 4, 4 } },
+        { { 0, 0, 1 }, { 35, 4, 4 } },
+        { { 0, 0, 2 }, { 35, 4, 4 } },
+        { { 0, 0, 3 }, { 35, 4, 4 } },
+        { { 0, 1, 0 }, { 35, 4, 4 } },
+        { { 0, 1, 1 }, { 35, 4, 4 } },
+        { { 0, 1, 2 }, { 35, 4, 4 } },
+        { { 0, 2, 0 }, { 35, 4, 4 } },
+        { { 0, 2, 1 }, { 35, 4, 4 } },
+        { { 0, 3, 0 }, { 35, 4, 4 } },
+        { { 1, 0, 0 }, { 35, 4, 4 } },
+        { { 1, 0, 1 }, { 35, 4, 4 } },
+        { { 1, 0, 2 }, { 35, 4, 4 } },
+        { { 1, 1, 0 }, { 35, 4, 4 } },
+        { { 1, 1, 1 }, { 35, 4, 4 } },
+        { { 1, 2, 0 }, { 35, 4, 4 } },
+        { { 2, 0, 0 }, { 35, 4, 4 } },
+        { { 2, 0, 1 }, { 35, 4, 4 } },
+        { { 2, 1, 0 }, { 35, 4, 4 } },
+        { { 3, 0, 0 }, { 35, 4, 4 } }
     };
 
     GLuint my_vao = generate_cube_vao();
@@ -192,10 +109,13 @@ int main()
     glBindVertexArray(my_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(block) * positions.size(), positions.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, position));
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, position));
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, texture_ids));
       glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glEnableVertexAttribArray(2);
-      glVertexAttribDivisor(2, 1);
+      glEnableVertexAttribArray(3);
+      glEnableVertexAttribArray(4);
+      glVertexAttribDivisor(3, 1);
+      glVertexAttribDivisor(4, 1);
     glBindVertexArray(0);
 
     GLuint my_texture;
@@ -219,9 +139,6 @@ int main()
         int width, height;
         glfwGetWindowSize(window, &width, &height);
 
-        glm::mat4 transformation = glm::mat4(1.0f);
-        //transformation = glm::rotate(transformation, glm::radians(25.0f + 10 * t), glm::vec3(1.0f, 0.5f, 0.25f));
-
         glm::mat4 projection = glm::perspective(
                 glm::radians(70.f),
                 (float)width / (float)height,
@@ -229,18 +146,8 @@ int main()
                 100.0f
             );
 
-        /*const float r = 6.f;
-        glm::mat4 view = glm::lookAt(
-                glm::vec3(-r * cos(t), 1.f, -r * sin(t)),
-                glm::vec3(0.f, 0.f, 0.f),
-                glm::vec3(0.f, 1.f, 0.f)
-            );*/
         glm::mat4 view = camera.look_at();
-        //glm::mat4 view = glm::mat4(1.0f);
-        // note that we're translating the scene in the reverse direction of where we want to move
-        //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); 
 
-        program.put("transformation", transformation);
         program.put("view_proj", projection * view);
 
         float dt = t - t_prev;

@@ -5,7 +5,7 @@
 #include <opengl-demo/math.hh>
 
 namespace opengl_demo {
-    using texture_id_t = uint8_t;
+    using texture_id_t = float;
 
     struct block
     {
