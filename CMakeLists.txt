@@ -13,14 +13,14 @@ add_custom_command(OUTPUT vertex_shader.c
 add_custom_command(OUTPUT fragment_shader.c
 		DEPENDS ${CMAKE_SOURCE_DIR}/src/fragment.shd
 		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/fragment.shd fragment_shader.c)
-add_custom_command(OUTPUT container_jpg.c
-		DEPENDS ${CMAKE_SOURCE_DIR}/res/container.jpg
-		COMMAND ${CMAKE_SOURCE_DIR}/export_file.sh ${CMAKE_SOURCE_DIR}/res/container.jpg container_jpg.c)
+add_custom_command(OUTPUT terrain_png.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/res/terrain.png
+		COMMAND ${CMAKE_SOURCE_DIR}/export_file.sh ${CMAKE_SOURCE_DIR}/res/terrain.png terrain_png.c)
 
 add_executable(${BIN_NAME}
 		vertex_shader.c
 		fragment_shader.c
-        container_jpg.c
+        terrain_png.c
 		src/main.cc
 		src/my-shaders.cc
 		src/utils/shaders.cc

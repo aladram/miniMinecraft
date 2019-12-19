@@ -14,7 +14,7 @@ static std::string generic_error(GLint id)
     std::string p_log(log_size, '\0');
     (*F2)(id, log_size, &log_size, p_log.data());
 
-    return std::move(p_log);
+    return p_log;
 }
 
 static std::string compile_error(GLint id)

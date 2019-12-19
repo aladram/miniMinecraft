@@ -75,9 +75,7 @@ static void mouse_callback(GLFWwindow* window, double x, double y)
 
 void glfw_error_callback(int, const char *description)
 {
-    const char *error_description;
-    glfwGetError(&error_description);
-    warnx("An error occured with GLFW: %s", error_description);
+    warnx("An error occured with GLFW: %s", description);
 }
 
 GLFWwindow* opengl_demo::setup_window(const char* title)

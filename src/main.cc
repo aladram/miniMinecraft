@@ -2,6 +2,7 @@ extern "C" {
 #include <err.h>
 }
 #include <array>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <map>
@@ -16,20 +17,85 @@ extern "C" {
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+//#include <glm/gtc/type_ptr.hpp>
 
 #include <opengl-demo/my-shaders.hh>
 #include <opengl-demo/program.hh>
 #include <opengl-demo/window.hh>
+#include <opengl-demo/world/block.hh>
 #include <opengl-demo/utils/opengl_utils.hh>
 
 using namespace opengl_demo;
 
-extern unsigned char container_jpg_buf[0];
-extern unsigned int container_jpg_buf_len;
+extern unsigned char terrain_png_buf[0];
+extern unsigned int terrain_png_buf_len;
 
-static GLuint generate_vao(float *vertices, size_t vertices_size, unsigned *indices, size_t indices_size)
+static GLuint generate_cube_vao()
 {
+    float data[] = {
+        // Vertices     // UVs
+
+        // Face 1 (front)
+        // Triangle 1
+        0.f, 0.f, 0.f,     0.f, 0.f,
+        0.f, 0.f, 1.f,     1.f, 0.f,
+        0.f, 1.f, 1.f,     1.f, 1.f,
+        // Triangle 2               
+        0.f, 0.f, 0.f,     0.f, 0.f,
+        0.f, 1.f, 1.f,     1.f, 1.f,
+        0.f, 1.f, 0.f,     0.f, 1.f,
+                                    
+        // Face 2 (right)           
+        // Triangle 1               
+        0.f, 0.f, 1.f,     0.f, 0.f,
+        1.f, 0.f, 1.f,     1.f, 0.f,
+        1.f, 1.f, 1.f,     1.f, 1.f,
+        // Triangle 2               
+        0.f, 0.f, 1.f,     0.f, 0.f,
+        1.f, 1.f, 1.f,     1.f, 1.f,
+        0.f, 1.f, 1.f,     0.f, 1.f,
+                                    
+        // Face 3 (back)            
+        // Triangle 1               
+        1.f, 0.f, 1.f,     0.f, 0.f,
+        1.f, 0.f, 0.f,     1.f, 0.f,
+        1.f, 1.f, 0.f,     1.f, 1.f,
+        // Triangle 2               
+        1.f, 0.f, 1.f,     0.f, 0.f,
+        1.f, 1.f, 0.f,     1.f, 1.f,
+        1.f, 1.f, 1.f,     0.f, 1.f,
+                                    
+        // Face 4 (left)            
+        // Triangle 1               
+        1.f, 0.f, 0.f,     0.f, 0.f,
+        0.f, 0.f, 0.f,     1.f, 0.f,
+        0.f, 1.f, 0.f,     1.f, 1.f,
+        // Triangle 2               
+        1.f, 0.f, 0.f,     0.f, 0.f,
+        0.f, 1.f, 0.f,     1.f, 1.f,
+        1.f, 1.f, 0.f,     0.f, 1.f,
+                                    
+        // Face 5 (top)             
+        // Triangle 1               
+        0.f, 1.f, 0.f,     0.f, 0.f,
+        0.f, 1.f, 1.f,     1.f, 0.f,
+        1.f, 1.f, 1.f,     1.f, 1.f,
+        // Triangle 2               
+        0.f, 1.f, 0.f,     0.f, 0.f,
+        1.f, 1.f, 1.f,     1.f, 1.f,
+        1.f, 1.f, 0.f,     0.f, 1.f,
+                                    
+        // Face 6 (bottom)     
+        // Triangle 1               
+        1.f, 0.f, 0.f,     0.f, 0.f,
+        1.f, 0.f, 1.f,     1.f, 0.f,
+        0.f, 0.f, 1.f,     1.f, 1.f,
+        // Triangle 2               
+        1.f, 0.f, 0.f,     0.f, 0.f,
+        0.f, 0.f, 1.f,     1.f, 1.f,
+        0.f, 0.f, 0.f,     0.f, 1.f
+    };
+
     GLuint my_vao, my_vbo, my_ebo;
     glGenVertexArrays(1, &my_vao);
     glGenBuffers(1, &my_vbo);
@@ -37,30 +103,27 @@ static GLuint generate_vao(float *vertices, size_t vertices_size, unsigned *indi
 
     glBindVertexArray(my_vao);
       glBindBuffer(GL_ARRAY_BUFFER, my_vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices_size, vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-      // Must not unbind EBO after that: will stay bind for this VAO
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, my_ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
     glBindVertexArray(0);
 
     return my_vao;
 }
 
-static GLuint generate_texture(void *buf, unsigned buf_size)
+static void generate_texture(void *buf, unsigned buf_size)
 {
     int width, height, nrChannels;
 
+    stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load_from_memory((const stbi_uc *)buf, (int)buf_size, &width, &height, &nrChannels, 0);
     if (!data)
         errx(1, "Texture load failed");
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -75,6 +138,8 @@ MessageCallback( GLenum source,
                  const GLchar* message,
                  const void* userParam )
 {
+    (void)source, (void)id, (void)length, (void)userParam;
+
     if (type != GL_DEBUG_TYPE_ERROR)
         return;
     fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
@@ -96,78 +161,38 @@ int main()
     program program{compile_my_shaders()};
     program.use();
 
-    float vertices[] = {
-        // positions          // texture coords
-
-        // Front face
-        0.5f,  0.5f, -0.5f,   0.0f, 1.0f,   // top right
-        0.5f, -0.5f, -0.5f,   0.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,    // top left
-
-        // Back face
-        0.5f,  0.5f, 0.5f,    1.0f, 1.0f,   // top right
-        0.5f, -0.5f, 0.5f,    1.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.5f,   0.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.5f,   0.0f, 1.0f    // top left
-    };
-    unsigned indices[] = {
-        // Front face
-        0, 1, 3,   // first triangle
-        1, 2, 3,   // second triangle
-
-        // Left face
-        4, 5, 0,
-        5, 1, 0,
-
-        // Back face
-        7, 6, 4,
-        6, 5, 4,
-
-        // Right face
-        3, 2, 7,
-        2, 6, 7,
-
-        // Top face
-        4, 0, 7,
-        0, 3, 7,
-
-        // Bottom face
-        1, 5, 2,
-        5, 6, 2
-    };
-    std::vector<glm::vec3> positions = {
-        { 0, 0, 0 },
-        { 0, 0, 1 },
-        { 0, 0, 2 },
-        { 0, 0, 3 },
-        { 0, 1, 0 },
-        { 0, 1, 1 },
-        { 0, 1, 2 },
-        { 0, 2, 0 },
-        { 0, 2, 1 },
-        { 0, 3, 0 },
-        { 1, 0, 0 },
-        { 1, 0, 1 },
-        { 1, 0, 2 },
-        { 1, 1, 0 },
-        { 1, 1, 1 },
-        { 1, 2, 0 },
-        { 2, 0, 0 },
-        { 2, 0, 1 },
-        { 2, 1, 0 },
-        { 3, 0, 0 }
+    std::vector<block> positions = {
+        { { 0, 0, 0 }, 0 },
+        { { 0, 0, 1 }, 0 },
+        { { 0, 0, 2 }, 0 },
+        { { 0, 0, 3 }, 0 },
+        { { 0, 1, 0 }, 0 },
+        { { 0, 1, 1 }, 0 },
+        { { 0, 1, 2 }, 0 },
+        { { 0, 2, 0 }, 0 },
+        { { 0, 2, 1 }, 0 },
+        { { 0, 3, 0 }, 0 },
+        { { 1, 0, 0 }, 0 },
+        { { 1, 0, 1 }, 0 },
+        { { 1, 0, 2 }, 0 },
+        { { 1, 1, 0 }, 0 },
+        { { 1, 1, 1 }, 0 },
+        { { 1, 2, 0 }, 0 },
+        { { 2, 0, 0 }, 0 },
+        { { 2, 0, 1 }, 0 },
+        { { 2, 1, 0 }, 0 },
+        { { 3, 0, 0 }, 0 }
     };
 
-    GLuint my_vao = generate_vao(vertices, sizeof(vertices), indices, sizeof(indices));
+    GLuint my_vao = generate_cube_vao();
 
     GLuint positions_vbo;
     glGenBuffers(1, &positions_vbo);
 
     glBindVertexArray(my_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), NULL);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(block) * positions.size(), positions.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, position));
       glBindBuffer(GL_ARRAY_BUFFER, 0);
       glEnableVertexAttribArray(2);
       glVertexAttribDivisor(2, 1);
@@ -179,10 +204,10 @@ int main()
     glBindTexture(GL_TEXTURE_2D, my_texture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-      generate_texture(container_jpg_buf, container_jpg_buf_len);
+      generate_texture(terrain_png_buf, terrain_png_buf_len);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     float t_prev = glfwGetTime();
@@ -231,7 +256,7 @@ int main()
         program.put("color", glm::vec4(0.f, (sin(t) / 2.0f) + 0.5f, 0.f, 0.f));
         glBindTexture(GL_TEXTURE_2D, my_texture);
         glBindVertexArray(my_vao);
-        glDrawElementsInstanced(GL_TRIANGLES, sizeof(indices) / sizeof(*indices), GL_UNSIGNED_INT, 0, positions.size());
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, positions.size());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
