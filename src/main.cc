@@ -24,6 +24,7 @@ extern "C" {
 #include <opengl-demo/window.hh>
 #include <opengl-demo/primitives/cube.hh>
 #include <opengl-demo/world/block.hh>
+#include <opengl-demo/world/world.hh>
 #include <opengl-demo/utils/opengl_utils.hh>
 
 using namespace opengl_demo;
@@ -78,28 +79,8 @@ int main()
     program program{compile_my_shaders()};
     program.use();
 
-    std::vector<block> positions = {
-        { { 0, 0, 0 }, { 35, 4, 4 } },
-        { { 0, 0, 1 }, { 35, 4, 4 } },
-        { { 0, 0, 2 }, { 35, 4, 4 } },
-        { { 0, 0, 3 }, { 35, 4, 4 } },
-        { { 0, 1, 0 }, { 35, 4, 4 } },
-        { { 0, 1, 1 }, { 35, 4, 4 } },
-        { { 0, 1, 2 }, { 35, 4, 4 } },
-        { { 0, 2, 0 }, { 35, 4, 4 } },
-        { { 0, 2, 1 }, { 35, 4, 4 } },
-        { { 0, 3, 0 }, { 35, 4, 4 } },
-        { { 1, 0, 0 }, { 35, 4, 4 } },
-        { { 1, 0, 1 }, { 35, 4, 4 } },
-        { { 1, 0, 2 }, { 35, 4, 4 } },
-        { { 1, 1, 0 }, { 35, 4, 4 } },
-        { { 1, 1, 1 }, { 35, 4, 4 } },
-        { { 1, 2, 0 }, { 35, 4, 4 } },
-        { { 2, 0, 0 }, { 35, 4, 4 } },
-        { { 2, 0, 1 }, { 35, 4, 4 } },
-        { { 2, 1, 0 }, { 35, 4, 4 } },
-        { { 3, 0, 0 }, { 35, 4, 4 } }
-    };
+    world world = generate_world();
+    auto positions = world.blocks;
 
     GLuint my_vao = generate_cube_vao();
 

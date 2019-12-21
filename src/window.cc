@@ -15,8 +15,8 @@ extern "C" {
 using namespace opengl_demo;
 
 typename opengl_demo::camera opengl_demo::camera{
-    glm::vec3(-3.f, 0.f, -3.f),
-    glm::vec3(1.f, 0.f, 0.f),
+    glm::vec3(-3.f, 72.f, -3.f),
+    glm::vec3(std::sqrt(2)/2.f, 0.f, std::sqrt(2)/2.f),
     glm::vec3(0.f, 1.f, 0.f)
 };
 

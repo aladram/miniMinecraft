@@ -26,6 +26,7 @@ add_executable(${BIN_NAME}
 		src/utils/shaders.cc
 		src/window.cc
         src/primitives/cube.cc
+		src/world/world.cc
         )
 target_include_directories(${BIN_NAME} PRIVATE "include/")
 target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=4 OPENGL_VERSION_MINOR=5)
