@@ -27,6 +27,8 @@ add_executable(${BIN_NAME}
 		src/window.cc
         src/primitives/cube.cc
 		src/world/world.cc
+		src/world/entity.cc
+		src/world/aabb.cc
         )
 target_include_directories(${BIN_NAME} PRIVATE "include/")
 target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=4 OPENGL_VERSION_MINOR=5)

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <opengl-demo/math.hh>
+#include <opengl-demo/world/aabb.hh>
 
 namespace opengl_demo {
     using texture_id_t = float;
@@ -11,6 +12,11 @@ namespace opengl_demo {
 
     struct block
     {
+        aabb hitbox() const
+        {
+            return aabb{position, position + vector3{1.f, 1.f, 1.f}};
+        }
+
         vector3 position;
         // 0: side, 1: top, 2: bottom
         texture_ids_t texture_ids;

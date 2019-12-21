@@ -24,6 +24,7 @@ extern "C" {
 #include <opengl-demo/window.hh>
 #include <opengl-demo/primitives/cube.hh>
 #include <opengl-demo/world/block.hh>
+#include <opengl-demo/world/entity.hh>
 #include <opengl-demo/world/world.hh>
 #include <opengl-demo/utils/opengl_utils.hh>
 
@@ -81,6 +82,13 @@ int main()
 
     world world = generate_world();
     auto positions = world.blocks;
+    entity entity{
+        // Measurements
+        { 0.6, 1.8, 0.6 },
+
+        // Position
+        { -3.f, 82.f, -3.f }
+    };
 
     GLuint my_vao = generate_cube_vao();
 
@@ -116,6 +124,10 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         float t = glfwGetTime();
+        float dt = t - t_prev;
+
+        entity.update(world, dt);
+        camera.position = entity.position + vector3{0.3, 1.7, 0.3};
 
         int width, height;
         glfwGetWindowSize(window, &width, &height);
@@ -131,9 +143,6 @@ int main()
 
         program.put("view_proj", projection * view);
 
-        float dt = t - t_prev;
-        t_prev = t;
-
         process_input(window, dt);
 
         // Blue sky background
@@ -148,6 +157,8 @@ int main()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        t_prev = t;
     }
 
     glfwTerminate();
