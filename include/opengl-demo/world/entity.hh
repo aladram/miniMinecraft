@@ -2,9 +2,10 @@
 
 #include <opengl-demo/math.hh>
 #include <opengl-demo/world/aabb.hh>
-#include <opengl-demo/world/world.hh>
 
 namespace opengl_demo {
+    struct world;
+
     struct entity
     {
         entity(const vector3& _measurements, const vector3& _position)

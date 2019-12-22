@@ -82,13 +82,6 @@ int main()
 
     world world = generate_world();
     auto positions = world.blocks;
-    entity entity{
-        // Measurements
-        { 0.6, 1.8, 0.6 },
-
-        // Position
-        { -3.f, 82.f, -3.f }
-    };
 
     GLuint my_vao = generate_cube_vao();
 
@@ -126,8 +119,10 @@ int main()
         float t = glfwGetTime();
         float dt = t - t_prev;
 
-        entity.update(world, dt);
-        camera.position = entity.position + vector3{0.3, 1.7, 0.3};
+        process_input(window, world, dt);
+
+        world.player.update(world, dt);
+        camera.position = world.player.position + vector3{0.3, 1.7, 0.3};
 
         int width, height;
         glfwGetWindowSize(window, &width, &height);
@@ -143,7 +138,6 @@ int main()
 
         program.put("view_proj", projection * view);
 
-        process_input(window, dt);
 
         // Blue sky background
         glClearColor(135.f / 255.f, 206.f / 255.f, 235.f / 255.f, 1.0f);

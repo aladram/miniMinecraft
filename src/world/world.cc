@@ -10,6 +10,14 @@ using namespace opengl_demo;
 
 world opengl_demo::generate_world()
 {
+    entity player{
+        // Measurements
+        { 0.6, 1.8, 0.6 },
+
+        // Position
+        { -3.f, 82.f, -3.f }
+    };
+
     /*
      * Bookshelf structure generation
      */
@@ -57,5 +65,5 @@ world opengl_demo::generate_world()
         }
     }
 
-    return world{std::move(blocks)};
+    return world{std::move(blocks), player};
 }

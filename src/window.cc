@@ -20,23 +20,41 @@ typename opengl_demo::camera opengl_demo::camera{
     glm::vec3(0.f, 1.f, 0.f)
 };
 
-void opengl_demo::process_input(GLFWwindow *window, float dt)
+void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
 {
-    constexpr float lambda = 2.f;
+    static float lastJump = 0.f;
+
+    constexpr float lambda = 4.f;
 
     // Exit on ESC press
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // Move on arrow keys press
     float lambda_t = lambda * dt;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.position += lambda_t * camera.forward();
+        world.player.position += lambda_t * camera.forward();
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.position -= lambda_t * camera.forward();
+        world.player.position -= lambda_t * camera.forward();
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camera.position -= lambda_t * camera.right();
+        world.player.position -= lambda_t * camera.right();
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.position += lambda_t * camera.right();
+        world.player.position += lambda_t * camera.right();
+
+    // Check last jump time
+    if (std::abs(world.player.velocity.y) < FLT_EPSILON)
+        lastJump += dt;
+    else
+        lastJump = 0;
+
+    // Jump on space press
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && lastJump > 0.1f)
+    {
+        world.player.velocity.y = 2.f * lambda;
+        lastJump = 0;
+    }
+
+    world.player.update(world, 0);
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
