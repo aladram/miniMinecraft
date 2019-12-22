@@ -31,16 +31,21 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    vector3 forward = camera.forward();
+    forward[1] = 0;
+    vector3 right = camera.right();
+    right[1] = 0;
+
     // Move on arrow keys press
     float lambda_t = lambda * dt;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        world.player.position += lambda_t * camera.forward();
+        world.player.position += lambda_t * forward;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        world.player.position -= lambda_t * camera.forward();
+        world.player.position -= lambda_t * forward;
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        world.player.position -= lambda_t * camera.right();
+        world.player.position -= lambda_t * right;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        world.player.position += lambda_t * camera.right();
+        world.player.position += lambda_t * right;
 
     // Jump on space press
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && lastJump > jumpDelay)
