@@ -22,9 +22,10 @@ typename opengl_demo::camera opengl_demo::camera{
 
 void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
 {
-    static float lastJump = 0.f;
-
     constexpr float lambda = 4.f;
+    constexpr float jumpDelay = 0.1f;
+
+    static float lastJump = 2 * jumpDelay;
 
     // Exit on ESC press
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -41,18 +42,15 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         world.player.position += lambda_t * camera.right();
 
+    // Jump on space press
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && lastJump > jumpDelay)
+        world.player.velocity.y = 2.f * lambda;
+
     // Check last jump time
     if (std::abs(world.player.velocity.y) < FLT_EPSILON)
         lastJump += dt;
     else
         lastJump = 0;
-
-    // Jump on space press
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && lastJump > 0.1f)
-    {
-        world.player.velocity.y = 2.f * lambda;
-        lastJump = 0;
-    }
 
     world.player.update(world, 0);
 }
