@@ -81,7 +81,7 @@ int main()
     program.use();
 
     world world = generate_world();
-    auto positions = world.blocks;
+    auto& positions = world.blocks;
 
     GLuint my_vao = generate_cube_vao();
 
@@ -124,6 +124,12 @@ int main()
         world.player.update(world, dt);
         camera.position = world.player.position + vector3{0.3, 1.7, 0.3};
 
+        /*glBindVertexArray(my_vao);
+          glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(block) * positions.size(), positions.data(), GL_STATIC_DRAW);
+          glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+*/
         int width, height;
         glfwGetWindowSize(window, &width, &height);
 

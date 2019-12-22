@@ -18,7 +18,7 @@ namespace opengl_demo {
             return aabb{position, position + measurements};
         }
 
-        void update(const world& world, float dt);
+        void update(world& world, float dt);
 
         vector3 measurements;
         vector3 position;

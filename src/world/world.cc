@@ -49,7 +49,7 @@ world opengl_demo::generate_world()
     /*
      * Flat terrain generation
      */
-    constexpr int map_radius = 100;
+    constexpr int map_radius = 50;
     constexpr int terrain_height = 70;
     constexpr int terrain_height_start = 67;
     constexpr texture_ids_t dirt_texture = { 2, 2, 2 };
