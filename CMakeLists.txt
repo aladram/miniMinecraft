@@ -29,6 +29,7 @@ add_executable(${BIN_NAME}
 		src/world/world.cc
 		src/world/entity.cc
 		src/world/aabb.cc
+		src/renderer.cc
         )
 target_include_directories(${BIN_NAME} PRIVATE "include/")
 target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=4 OPENGL_VERSION_MINOR=5)
@@ -55,8 +56,8 @@ target_link_libraries(${BIN_NAME} "glad" "${CMAKE_DL_LIBS}")
 target_include_directories(${BIN_NAME} PRIVATE "${LIB_DIR}/glm/")
 
 # assimp
-add_subdirectory("${LIB_DIR}/assimp" EXCLUDE_FROM_ALL)
-target_link_libraries(${BIN_NAME} assimp::assimp)
+#add_subdirectory("${LIB_DIR}/assimp" EXCLUDE_FROM_ALL)
+#target_link_libraries(${BIN_NAME} assimp::assimp)
 
 # stb
 set(STB_DIR "${LIB_DIR}/stb")

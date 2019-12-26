@@ -8,6 +8,9 @@
 namespace opengl_demo {
     struct world
     {
+        void init();
+        void render() const;
+
         std::vector<block> blocks;
         entity player;
     };
