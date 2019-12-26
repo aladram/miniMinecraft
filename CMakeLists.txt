@@ -32,7 +32,7 @@ add_executable(${BIN_NAME}
 		src/renderer.cc
         )
 target_include_directories(${BIN_NAME} PRIVATE "include/")
-target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=4 OPENGL_VERSION_MINOR=5)
+target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=3 OPENGL_VERSION_MINOR=3)
 target_compile_options(${BIN_NAME} PRIVATE -Wall -Wextra -O0 -g3)
 
 # GLFW

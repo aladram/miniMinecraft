@@ -53,8 +53,8 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, 0);
+    //glEnable(GL_DEBUG_OUTPUT);
+    //glDebugMessageCallback(MessageCallback, 0);
 
     program program{compile_my_shaders()};
     program.use();
