@@ -44,6 +44,18 @@ MessageCallback( GLenum source,
             type, severity, message );
 }
 
+void display_fps(float dt)
+{
+    static float t = 0;
+
+    t += dt;
+    if (t < 1)
+        return;
+
+    t = 0;
+    std::cout << "FPS: " << (int)std::floor(1/dt) << std::endl;
+}
+
 int main()
 {
     auto window = setup_window("OpenGL demo");
@@ -68,6 +80,8 @@ int main()
     {
         float t = glfwGetTime();
         float dt = t - t_prev;
+
+        display_fps(dt);
 
         process_input(window, world, dt);
 
