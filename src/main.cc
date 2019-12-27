@@ -65,8 +65,11 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
+#ifndef NDEBUG
+    // Enable debug output
     //glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(MessageCallback, 0);
+#endif
 
     program program{compile_my_shaders()};
     program.use();
@@ -75,6 +78,11 @@ int main()
     renderer renderer{world};
 
     float t_prev = glfwGetTime();
+
+#ifndef NDEBUG
+    // Disable vsync
+    glfwSwapInterval(0);
+#endif
 
     while (!glfwWindowShouldClose(window))
     {

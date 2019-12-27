@@ -5,8 +5,41 @@
 
 #include <opengl-demo/math.hh>
 #include <opengl-demo/world/block.hh>
+#include <opengl-demo/world/chunk.hh>
 
 using namespace opengl_demo;
+
+static vector3i loc_chunk(const vector3i& loc)
+{
+    return (loc % (int)chunk_t::N + vector3i((int)chunk_t::N)) % (int)chunk_t::N;
+}
+
+static vector3i loc_world(const vector3i& loc)
+{
+    return (loc - loc_chunk(loc)) / (int)chunk_t::N;
+}
+
+block world::get_block(const vector3i& loc) const
+{
+    auto chunk_it = chunks.find(loc / (int)chunk_t::N);
+    // Return air if chunk does not exist
+    if (chunk_it == chunks.end())
+        return block::air;
+
+    const auto& chunk = chunk_it->second;
+    return chunk.get_block(loc_chunk(loc));
+}
+
+void world::set_block(const vector3i& loc, const block& block)
+{
+    auto chunk_it = chunks.find(loc_world(loc));
+    // Create new chunk if it does not exist
+    if (chunk_it == chunks.end())
+        chunks[loc_world(loc)] = chunk_t{};
+
+    auto& chunk = chunks[loc_world(loc)];
+    chunk.set_block(loc_chunk(loc), block);
+}
 
 world opengl_demo::generate_world()
 {
@@ -65,5 +98,16 @@ world opengl_demo::generate_world()
         }
     }
 
-    return world{std::move(blocks), player};
+    world_t world{player, {}, {}};
+    for (const auto& block: blocks)
+        world.set_block(vector3i(block.position), block);
+
+    // test
+    for (const auto& chunk: world.chunks)
+        for (const auto& block: chunk.second.blocks)
+            // Check if not air
+            if (block.texture_ids[0])
+                world.blocks.push_back(block);
+
+    return world;
 }

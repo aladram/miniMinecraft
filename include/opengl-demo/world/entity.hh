@@ -24,4 +24,5 @@ namespace opengl_demo {
         vector3 position;
         vector3 velocity = { 0.f, 0.f, 0.f };
     };
+    using entity_t = entity;
 }

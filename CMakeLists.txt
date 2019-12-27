@@ -30,6 +30,8 @@ add_executable(${BIN_NAME}
 		src/world/entity.cc
 		src/world/aabb.cc
 		src/renderer.cc
+		src/world/chunk.cc
+		src/world/block.cc
         )
 target_include_directories(${BIN_NAME} PRIVATE "include/")
 target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=3 OPENGL_VERSION_MINOR=3)

@@ -35,4 +35,5 @@ namespace opengl_demo
                 );
         }
     };
+    using camera_t = camera;
 }

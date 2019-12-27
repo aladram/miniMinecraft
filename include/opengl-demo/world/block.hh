@@ -12,6 +12,8 @@ namespace opengl_demo {
 
     struct block
     {
+        static const block air;
+
         aabb hitbox() const
         {
             return aabb{position, position + vector3{1.f, 1.f, 1.f}};
@@ -21,4 +23,5 @@ namespace opengl_demo {
         // 0: side, 1: top, 2: bottom
         texture_ids_t texture_ids;
     };
+    using block_t = block;
 }
