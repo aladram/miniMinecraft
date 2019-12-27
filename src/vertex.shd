@@ -14,8 +14,7 @@ void main()
     gl_Position = view_proj * (vec4(pos, 1.0) + vec4(off, 0));
 
     uint face_type = uint(face_type_f);
-    uint tex_id = uint(tex_ids[face_type]);
-    //uvec2 tex_coords = uvec2(mod(tex_id, 16), (15 - tex_id / 16));
-    uvec2 tex_coords = uvec2(0, 15);
-    uv_f = vec2(tex_coords) / 16. + uv / 16.;
+    float tex_id = tex_ids[face_type];
+    vec2 tex_coords = vec2(mod(tex_id, 16), (15 - (tex_id - mod(tex_id, 16)) / 16));
+    uv_f = tex_coords / 16. + uv / 16.;
 }
