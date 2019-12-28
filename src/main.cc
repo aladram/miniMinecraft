@@ -113,7 +113,7 @@ int main()
         program.use();
 
         // Blue sky background
-        glClearColor(135.f / 255.f, 206.f / 255.f, 235.f / 255.f, 1.0f);
+        glClearColor(58.8 / 100., 83.5 / 100., 100. / 100., 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         renderer.render();

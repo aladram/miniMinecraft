@@ -41,7 +41,6 @@ renderer::renderer(const typename opengl_demo::world& _world)
     glGenBuffers(1, &positions_vbo);
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(block) * world.blocks.size(), world.blocks.data(), GL_STATIC_DRAW);
         glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, position));
         glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, texture_ids));
       glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -64,13 +63,20 @@ renderer::renderer(const typename opengl_demo::world& _world)
 
 void renderer::render() const
 {
+    std::vector<block> blocks;
+    for (const auto& chunk: world.chunks)
+        for (const auto& block: chunk.second.blocks)
+            // Check if not air
+            if (block.texture_ids[0])
+                blocks.push_back(block);
+
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(block) * world.blocks.size(), world.blocks.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(block) * blocks.size(), blocks.data(), GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     glBindTexture(GL_TEXTURE_2D, texture);
     glBindVertexArray(world_vao);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, world.blocks.size());
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, blocks.size());
 }

@@ -14,36 +14,55 @@
 
 using namespace opengl_demo;
 
-static vector3i loc_chunk(const vector3i& loc)
+static vector3i loc_in_chunk(const vector3i& loc)
 {
     return (loc % (int)chunk_t::N + vector3i((int)chunk_t::N)) % (int)chunk_t::N;
 }
 
-static vector3i loc_world(const vector3i& loc)
+static vector3i loc_of_chunk(const vector3i& loc)
 {
-    return (loc - loc_chunk(loc)) / (int)chunk_t::N;
+    return (loc - loc_in_chunk(loc)) / (int)chunk_t::N;
 }
 
 block world::get_block(const vector3i& loc) const
 {
-    auto chunk_it = chunks.find(loc / (int)chunk_t::N);
+    auto chunk_it = chunks.find(loc_of_chunk(loc));
     // Return air if chunk does not exist
     if (chunk_it == chunks.end())
         return block::air;
 
     const auto& chunk = chunk_it->second;
-    return chunk.get_block(loc_chunk(loc));
+    return chunk.get_block(loc_in_chunk(loc));
 }
 
 void world::set_block(const vector3i& loc, const block& block)
 {
-    auto chunk_it = chunks.find(loc_world(loc));
+    auto chunk_it = chunks.find(loc_of_chunk(loc));
     // Create new chunk if it does not exist
     if (chunk_it == chunks.end())
-        chunks[loc_world(loc)] = chunk_t{};
+        chunks[loc_of_chunk(loc)] = chunk_t{};
 
-    auto& chunk = chunks[loc_world(loc)];
-    chunk.set_block(loc_chunk(loc), block);
+    auto& chunk = chunks[loc_of_chunk(loc)];
+    chunk.set_block(loc_in_chunk(loc), block);
+}
+
+std::vector<block> world::neighbors(const vector3i& loc, unsigned radius)
+{
+    std::vector<block> neighborhood;
+    neighborhood.reserve(radius * radius * radius);
+
+    for (unsigned i = 0; i < radius; ++i)
+        for (unsigned j = 0; j < radius; ++j)
+            for (unsigned k = 0; k < radius; ++k)
+            {
+                vector3i off = vector3i(i, j, k) - vector3i(radius / 2);
+                const auto& block = get_block(loc + off);
+                // Check if not air block
+                if (block.texture_ids[0])
+                    neighborhood.push_back(block);
+            }
+
+    return neighborhood;
 }
 
 struct octave_noise
@@ -132,7 +151,7 @@ world opengl_demo::generate_world()
         { -3.f, 82.f, -3.f }
     };
 
-    world_t world{player, {}, {}};
+    world_t world{player, {}};
 
     constexpr unsigned size = 64;
     const auto height_map = generate_height_map(size);
@@ -151,13 +170,6 @@ world opengl_demo::generate_world()
         }
 
     world.player.position.y = height_map[size * (size / 2 + (int)world.player.position.x) + (size / 2 + (int)world.player.position.z)] + 3;
-
-    // test
-    for (const auto& chunk: world.chunks)
-        for (const auto& block: chunk.second.blocks)
-            // Check if not air
-            if (block.texture_ids[0])
-                world.blocks.push_back(block);
 
     return world;
 }
