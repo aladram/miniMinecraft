@@ -22,6 +22,7 @@ camera_t opengl_demo::camera{
 };
 
 static world_t* world_ptr;
+static bool left_click;
 
 void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
 {
@@ -30,8 +31,10 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
 
     constexpr float lambda = 4.f;
     constexpr float jumpDelay = 0.1f;
+    constexpr float breakDelay = 0.25f;
 
     static float lastJump = 2 * jumpDelay;
+    static float lastBreak = 2 * breakDelay;
 
     // Exit on ESC press
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -62,6 +65,21 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
         lastJump += dt;
     else
         lastJump = 0;
+
+    // Check left click
+    if (left_click && lastBreak > breakDelay)
+    {
+        lastBreak = 0;
+        auto block = camera.target_block(world);
+        if (block)
+        {
+            // Set to air
+            block->texture_ids = { 0, 0, 0 };
+            world.set_block(block->position, *block);
+        }
+    }
+    else
+        lastBreak += dt;
 
     world.player.update(world, 0);
 }
@@ -102,20 +120,11 @@ static void mouse_callback(GLFWwindow* window, double x, double y)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (!world_ptr)
-        return;
-    auto& world = *world_ptr;
+    (void)window;
+    (void)mods;
 
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    {
-        auto block = camera.target_block(world);
-        if (block)
-        {
-            // Set to air
-            block->texture_ids = { 0, 0, 0 };
-            world.set_block(block->position, *block);
-        }
-    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT)
+        left_click = (action == GLFW_PRESS);
 }
 
 void glfw_error_callback(int, const char *description)
