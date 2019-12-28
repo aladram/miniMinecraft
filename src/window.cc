@@ -11,17 +11,23 @@ extern "C" {
 #include <glm/glm.hpp>
 
 #include <opengl-demo/camera.hh>
+#include <opengl-demo/world/world.hh>
 
 using namespace opengl_demo;
 
-typename opengl_demo::camera opengl_demo::camera{
+camera_t opengl_demo::camera{
     glm::vec3(0.f),
     glm::vec3(std::sqrt(2)/2.f, 0.f, std::sqrt(2)/2.f),
     glm::vec3(0.f, 1.f, 0.f)
 };
 
+static world_t* world_ptr;
+
 void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
 {
+    if (!world_ptr)
+        world_ptr = &world;
+
     constexpr float lambda = 4.f;
     constexpr float jumpDelay = 0.1f;
 
@@ -94,6 +100,24 @@ static void mouse_callback(GLFWwindow* window, double x, double y)
         ));
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (!world_ptr)
+        return;
+    auto& world = *world_ptr;
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        auto block = camera.target_block(world);
+        if (block)
+        {
+            // Set to air
+            block->texture_ids = { 0, 0, 0 };
+            world.set_block(block->position, *block);
+        }
+    }
+}
+
 void glfw_error_callback(int, const char *description)
 {
     warnx("An error occured with GLFW: %s", description);
@@ -129,6 +153,7 @@ GLFWwindow* opengl_demo::setup_window(const char* title)
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 

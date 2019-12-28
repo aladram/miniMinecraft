@@ -25,6 +25,7 @@ add_executable(${BIN_NAME}
 		src/my-shaders.cc
 		src/utils/shaders.cc
 		src/window.cc
+        src/camera.cc
         src/primitives/cube.cc
 		src/world/world.cc
 		src/world/entity.cc

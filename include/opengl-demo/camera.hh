@@ -1,39 +1,24 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <optional>
+
+#include <opengl-demo/math.hh>
+#include <opengl-demo/world/block.hh>
+#include <opengl-demo/world/world.hh>
 
 namespace opengl_demo
 {
     struct camera
     {
-        glm::vec3 position;
-        glm::vec3 forward_;
-        glm::vec3 up_;
+        vector3 position;
+        vector3 forward_;
+        vector3 up_;
 
-        glm::vec3 forward() const
-        {
-            return glm::normalize(forward_);
-        }
-
-        glm::vec3 up() const
-        {
-            return glm::normalize(up_);
-        }
-
-        glm::vec3 right() const
-        {
-            return glm::normalize(glm::cross(forward_, up_));
-        }
-
-        auto look_at() const
-        {
-            return glm::lookAt(
-                    position,
-                    position + forward_,
-                    up_
-                );
-        }
+        vector3 forward() const;
+        vector3 up() const;
+        vector3 right() const;
+        glm::mat4x4 look_at() const;
+        std::optional<block> target_block(const world& world) const;
     };
     using camera_t = camera;
 }
