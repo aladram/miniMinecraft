@@ -1,7 +1,12 @@
 #include <opengl-demo/world/world.hh>
 
+#include <cassert>
+#include <climits>
+#include <random>
 #include <utility>
 #include <vector>
+
+#include <PerlinNoise.hpp>
 
 #include <opengl-demo/math.hh>
 #include <opengl-demo/world/block.hh>
@@ -41,6 +46,82 @@ void world::set_block(const vector3i& loc, const block& block)
     chunk.set_block(loc_chunk(loc), block);
 }
 
+struct octave_noise
+{
+    octave_noise(std::uint32_t seed, std::int32_t _octaves)
+        : noise(seed)
+        , octaves(_octaves)
+    {}
+
+    double operator()(double x, double y) const
+    {
+        double result = 0.0;
+        double amp = 1.0;
+
+        for (std::int32_t i = 0; i < octaves; ++i)
+        {
+            result += noise.noise(x, y) * amp;
+            x *= 0.5;
+            y *= 0.5;
+            amp *= 2.;
+        }
+
+        return result;
+    }
+
+    const siv::PerlinNoise noise;
+    const std::int32_t octaves;
+};
+
+struct combined_noise
+{
+    combined_noise(std::uint32_t seed1, std::uint32_t seed2, std::int32_t octaves)
+        : noise1(seed1, octaves)
+        , noise2(seed2, octaves)
+    {}
+
+    double operator()(double x, double y) const
+    {
+        return noise1(x + noise2(x, y), y);
+    }
+
+    const octave_noise noise1;
+    const octave_noise noise2;
+};
+
+static std::vector<unsigned> generate_height_map(unsigned size)
+{
+    assert(size <= (unsigned)INT_MAX);
+
+    static constexpr unsigned sea_level = 62;
+
+    std::random_device r;
+    const combined_noise noise1{r(), r(), 8};
+    const combined_noise noise2{r(), r(), 8};
+    const octave_noise noise3{r(), 6};
+
+    std::vector<unsigned> height_map;
+    height_map.reserve(size * size);
+
+    for (unsigned i = 0; i < size; ++i)
+        for (unsigned j = 0; j < size; ++j)
+        {
+            double x = (double) ((int)i - (int)size / 2);
+            double z = (double) ((int)j - (int)size / 2);
+
+            double low = noise1(x * 1.3, z * 1.3) / 6. - 4.;
+            double high = noise2(x * 1.3, z * 1.3) / 5. + 6.;
+
+            double height = ((noise3(x,z) > 0.) ? low : std::max(low, high)) / 2.;
+            if (height < 0)
+                height *= 0.8;
+
+            height_map.push_back((unsigned)height + sea_level);
+        }
+
+    return height_map;
+}
+
 world opengl_demo::generate_world()
 {
     entity player{
@@ -51,56 +132,25 @@ world opengl_demo::generate_world()
         { -3.f, 82.f, -3.f }
     };
 
-    /*
-     * Bookshelf structure generation
-     */
-    std::vector<block> blocks = {
-        { { 0, 0, 0 }, { 35, 4, 4 } },
-        { { 0, 0, 1 }, { 35, 4, 4 } },
-        { { 0, 0, 2 }, { 35, 4, 4 } },
-        { { 0, 0, 3 }, { 35, 4, 4 } },
-        { { 0, 1, 0 }, { 35, 4, 4 } },
-        { { 0, 1, 1 }, { 35, 4, 4 } },
-        { { 0, 1, 2 }, { 35, 4, 4 } },
-        { { 0, 2, 0 }, { 35, 4, 4 } },
-        { { 0, 2, 1 }, { 35, 4, 4 } },
-        { { 0, 3, 0 }, { 35, 4, 4 } },
-        { { 1, 0, 0 }, { 35, 4, 4 } },
-        { { 1, 0, 1 }, { 35, 4, 4 } },
-        { { 1, 0, 2 }, { 35, 4, 4 } },
-        { { 1, 1, 0 }, { 35, 4, 4 } },
-        { { 1, 1, 1 }, { 35, 4, 4 } },
-        { { 1, 2, 0 }, { 35, 4, 4 } },
-        { { 2, 0, 0 }, { 35, 4, 4 } },
-        { { 2, 0, 1 }, { 35, 4, 4 } },
-        { { 2, 1, 0 }, { 35, 4, 4 } },
-        { { 3, 0, 0 }, { 35, 4, 4 } }
-    };
-    for (auto& block: blocks)
-        block.position += vector3{ 0, 70, 0 };
+    world_t world{player, {}, {}};
 
-    /*
-     * Flat terrain generation
-     */
-    constexpr int map_radius = 50;
-    constexpr int terrain_height = 70;
-    constexpr int terrain_height_start = 67;
+    constexpr unsigned size = 64;
+    const auto height_map = generate_height_map(size);
     constexpr texture_ids_t dirt_texture = { 2, 2, 2 };
     constexpr texture_ids_t grass_texture = { 3, 40, 2 };
-    for (int i = -map_radius; i < map_radius; ++i)
-    {
-        for (int j = -map_radius; j < map_radius; ++j)
+    for (unsigned i = 0; i < size; ++i)
+        for (unsigned j = 0; j < size; ++j)
         {
-            for (int k = terrain_height_start; k < terrain_height - 1; ++k)
-                blocks.push_back(block{{i, k, j}, dirt_texture});
+            unsigned height = height_map[i * size + j];
+            int x = (int)i - (int)size / 2;
+            int z = (int)j - (int)size / 2;
 
-            blocks.push_back(block{{i, terrain_height - 1, j}, grass_texture});
+            for (unsigned y = std::max<int>(height - 3, 0); y < height - 1; ++y)
+                world.set_block({ x, y, z }, block{ { x, y, z }, dirt_texture });
+            world.set_block({ x, height - 1, z }, block{ { x, height - 1, z }, grass_texture });
         }
-    }
 
-    world_t world{player, {}, {}};
-    for (const auto& block: blocks)
-        world.set_block(vector3i(block.position), block);
+    world.player.position.y = height_map[size * (size / 2 + (int)world.player.position.x) + (size / 2 + (int)world.player.position.z)] + 3;
 
     // test
     for (const auto& chunk: world.chunks)
