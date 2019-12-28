@@ -9,10 +9,10 @@
 namespace opengl_demo {
     struct world
     {
-        void init();
         block get_block(const vector3i& loc) const;
         void set_block(const vector3i& loc, const block& block);
         std::vector<block> neighbors(const vector3i& loc, unsigned diameter) const;
+        std::vector<block> immediate_neighbors(const vector3i& loc) const;
 
         entity player;
         std::unordered_map<vector3i, chunk, vector3i_hash> chunks;

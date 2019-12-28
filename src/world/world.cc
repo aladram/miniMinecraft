@@ -65,6 +65,31 @@ std::vector<block> world::neighbors(const vector3i& loc, unsigned diameter) cons
     return neighborhood;
 }
 
+std::vector<block> world::immediate_neighbors(const vector3i& loc) const
+{
+    static constexpr std::array<vector3i, 6> offsets{{
+        { -1, 0, 0 },
+        { 1, 0, 0 },
+        { 0, 0, -1 },
+        { 0, 0, 1 },
+        { 0, -1, 0 },
+        { 0, 1, 0 }
+    }};
+
+    std::vector<block> neighborhood;
+    neighborhood.reserve(6);
+
+    for (const auto& off: offsets)
+    {
+        const auto& block = get_block(loc + off);
+        // Check if not air block
+        if (block.texture_ids[0])
+            neighborhood.push_back(block);
+    }
+
+    return neighborhood;
+}
+
 struct octave_noise
 {
     octave_noise(std::uint32_t seed, std::int32_t _octaves)
@@ -174,7 +199,7 @@ world opengl_demo::generate_world()
     for (auto& chunk: world.chunks)
         for (auto& block: chunk.second.blocks)
             // Check if block is hidden
-            block.visible = (block.texture_ids[0]) && (world.neighbors(block.position, 3).size() != 3 * 3 * 3);
+            block.visible = (block.texture_ids[0]) && (world.immediate_neighbors(block.position).size() != 6);
 
     world.player.position.y = height_map[size * (size / 2 + (int)world.player.position.x) + (size / 2 + (int)world.player.position.z)] + 3;
 
