@@ -94,7 +94,7 @@ int main()
         process_input(window, world, dt);
 
         world.player.update(world, dt);
-        camera.position = world.player.position + vector3{0.3, 1.7, 0.3};
+        camera.position = world.player.eyes_position();
 
         int width, height;
         glfwGetWindowSize(window, &width, &height);

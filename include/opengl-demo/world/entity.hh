@@ -8,20 +8,21 @@ namespace opengl_demo {
 
     struct entity
     {
-        entity(const vector3& _measurements, const vector3& _position)
-            : measurements{_measurements}
-            , position{_position}
-        {}
-
         aabb hitbox() const
         {
             return aabb{position, position + measurements};
+        }
+
+        vector3 eyes_position() const
+        {
+            return position + eyes_offset;
         }
 
         void update(world& world, float dt);
 
         vector3 measurements;
         vector3 position;
+        vector3 eyes_offset;
         vector3 velocity = { 0.f, 0.f, 0.f };
     };
     using entity_t = entity;

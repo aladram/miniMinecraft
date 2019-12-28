@@ -8,8 +8,10 @@ extern "C" {
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <opengl-demo/math.hh>
 #include <opengl-demo/primitives/cube.hh>
 #include <opengl-demo/world/block.hh>
+#include <opengl-demo/world/chunk.hh>
 #include <opengl-demo/world/world.hh>
 
 using namespace opengl_demo;
@@ -63,13 +65,23 @@ renderer::renderer(const typename opengl_demo::world& _world)
 
 void renderer::render() const
 {
+    static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
+
     std::vector<block> blocks;
     for (const auto& chunk: world.chunks)
+    {
+        // Skip chunk if too far
+        vector3 loc = chunk.first * (int)chunk_t::N;
+        if (glm::distance(loc, world.player.eyes_position()) > max_render_distance)
+            continue;
+
+        // Add blocks to VBO
         for (const auto& block: chunk.second.blocks)
         {
             if (block.visible)
                 blocks.push_back(block);
         }
+    }
 
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);

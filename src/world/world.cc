@@ -146,14 +146,15 @@ world opengl_demo::generate_world()
     entity player{
         // Measurements
         { 0.6, 1.8, 0.6 },
-
         // Position
-        { -3.f, 82.f, -3.f }
+        { -3.f, 82.f, -3.f },
+        // Eyes offset
+        { 0.3, 1.7, 0.3 }
     };
 
     world_t world{player, {}};
 
-    constexpr unsigned size = 64;
+    constexpr unsigned size = 256;
     const auto height_map = generate_height_map(size);
     constexpr texture_ids_t dirt_texture = { 2, 2, 2 };
     constexpr texture_ids_t grass_texture = { 3, 40, 2 };
@@ -164,7 +165,7 @@ world opengl_demo::generate_world()
             int x = (int)i - (int)size / 2;
             int z = (int)j - (int)size / 2;
 
-            for (unsigned y = 0; y < height - 1; ++y)
+            for (unsigned y = 60; y < height - 1; ++y)
                 world.set_block({ x, y, z }, block{ { x, y, z }, dirt_texture });
             world.set_block({ x, height - 1, z }, block{ { x, height - 1, z }, grass_texture });
         }
