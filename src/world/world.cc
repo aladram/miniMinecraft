@@ -45,10 +45,33 @@ block world::get_block(const vector3i& loc) const
     return chunk.get_block(loc_in_chunk(loc));
 }
 
-void world::set_block(const vector3i& loc, const block& block)
+void world::set_block_unsafe(const vector3i& loc, const block& block)
 {
     auto& chunk = get_chunk(loc_of_chunk(loc));
     chunk.set_block(loc_in_chunk(loc), block);
+
+    // TODO: remove chunk if block == air and chunk now empty
+}
+
+void world::update_visibility(const vector3i& loc)
+{
+    auto block = get_block(loc);
+    auto neighbors = immediate_neighbors(loc);
+
+    for (auto b: neighbors)
+    {
+        b.visible = b.texture_ids[0] && (immediate_neighbors(b.position).size() != 6);
+        set_block_unsafe(b.position, b);
+    }
+    block.visible = block.texture_ids[0] && (neighbors.size() != 6);
+    set_block_unsafe(block.position, block);
+}
+
+void world::set_block(const vector3i& loc, const block& block)
+{
+    set_block_unsafe(loc, block);
+
+    update_visibility(loc);
 }
 
 std::vector<block> world::neighbors(const vector3i& loc, unsigned diameter) const
@@ -195,8 +218,8 @@ world opengl_demo::generate_world()
             int z = (int)j - (int)size / 2;
 
             for (unsigned y = 0; y < height - 1; ++y)
-                world.set_block({ x, y, z }, block{ { x, y, z }, dirt_texture });
-            world.set_block({ x, height - 1, z }, block{ { x, height - 1, z }, grass_texture });
+                world.set_block_unsafe({ x, y, z }, block{ { x, y, z }, dirt_texture });
+            world.set_block_unsafe({ x, height - 1, z }, block{ { x, height - 1, z }, grass_texture });
         }
 
     // Compute visible blocks
