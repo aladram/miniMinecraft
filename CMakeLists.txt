@@ -66,3 +66,9 @@ set(STB_DIR "${LIB_DIR}/stb")
 add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE "${STB_DIR}")
 target_link_libraries(${BIN_NAME} "stb")
+
+# Perlin noise
+set(PERLIN_DIR "${LIB_DIR}/perlin")
+add_library(perlin INTERFACE)
+target_include_directories(perlin INTERFACE "${PERLIN_DIR}")
+target_link_libraries(${BIN_NAME} "perlin")
