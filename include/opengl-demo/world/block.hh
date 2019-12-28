@@ -22,6 +22,7 @@ namespace opengl_demo {
         vector3 position;
         // 0: side, 1: top, 2: bottom
         texture_ids_t texture_ids;
+        bool visible = false;
     };
     using block_t = block;
 }

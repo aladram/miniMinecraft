@@ -46,16 +46,16 @@ void world::set_block(const vector3i& loc, const block& block)
     chunk.set_block(loc_in_chunk(loc), block);
 }
 
-std::vector<block> world::neighbors(const vector3i& loc, unsigned radius)
+std::vector<block> world::neighbors(const vector3i& loc, unsigned diameter) const
 {
     std::vector<block> neighborhood;
-    neighborhood.reserve(radius * radius * radius);
+    neighborhood.reserve(diameter * diameter * diameter);
 
-    for (unsigned i = 0; i < radius; ++i)
-        for (unsigned j = 0; j < radius; ++j)
-            for (unsigned k = 0; k < radius; ++k)
+    for (unsigned i = 0; i < diameter; ++i)
+        for (unsigned j = 0; j < diameter; ++j)
+            for (unsigned k = 0; k < diameter; ++k)
             {
-                vector3i off = vector3i(i, j, k) - vector3i(radius / 2);
+                vector3i off = vector3i(i, j, k) - vector3i(diameter / 2);
                 const auto& block = get_block(loc + off);
                 // Check if not air block
                 if (block.texture_ids[0])
@@ -164,10 +164,16 @@ world opengl_demo::generate_world()
             int x = (int)i - (int)size / 2;
             int z = (int)j - (int)size / 2;
 
-            for (unsigned y = std::max<int>(height - 3, 0); y < height - 1; ++y)
+            for (unsigned y = 0; y < height - 1; ++y)
                 world.set_block({ x, y, z }, block{ { x, y, z }, dirt_texture });
             world.set_block({ x, height - 1, z }, block{ { x, height - 1, z }, grass_texture });
         }
+
+    // Compute visible blocks
+    for (auto& chunk: world.chunks)
+        for (auto& block: chunk.second.blocks)
+            // Check if block is hidden
+            block.visible = (block.texture_ids[0]) && (world.neighbors(block.position, 3).size() != 3 * 3 * 3);
 
     world.player.position.y = height_map[size * (size / 2 + (int)world.player.position.x) + (size / 2 + (int)world.player.position.z)] + 3;
 

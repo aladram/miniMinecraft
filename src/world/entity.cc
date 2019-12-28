@@ -14,7 +14,7 @@ void entity::update(world& world, float dt)
     velocity = std::max(1.0f - dt * attenuation, 0.f) * velocity + dt * net_force;
     position += dt * velocity;
 
-    for (const auto& block: world.neighbors(position, 8))
+    for (const auto& block: world.neighbors(position, 7))
     {
         for (unsigned i: { 1, 0, 2 })
         {

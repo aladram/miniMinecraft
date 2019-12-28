@@ -66,9 +66,10 @@ void renderer::render() const
     std::vector<block> blocks;
     for (const auto& chunk: world.chunks)
         for (const auto& block: chunk.second.blocks)
-            // Check if not air
-            if (block.texture_ids[0])
+        {
+            if (block.visible)
                 blocks.push_back(block);
+        }
 
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
