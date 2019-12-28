@@ -9,6 +9,7 @@
 namespace opengl_demo {
     struct world
     {
+        chunk& get_chunk(const vector3i& loc);
         block get_block(const vector3i& loc) const;
         void set_block(const vector3i& loc, const block& block);
         std::vector<block> neighbors(const vector3i& loc, unsigned diameter) const;

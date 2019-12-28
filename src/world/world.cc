@@ -24,6 +24,16 @@ static vector3i loc_of_chunk(const vector3i& loc)
     return (loc - loc_in_chunk(loc)) / (int)chunk_t::N;
 }
 
+chunk& world::get_chunk(const vector3i& loc)
+{
+    auto chunk_it = chunks.find(loc);
+    // Create new chunk if it does not exist
+    if (chunk_it == chunks.end())
+        chunks[loc] = chunk_t{};
+
+    return chunks[loc];
+}
+
 block world::get_block(const vector3i& loc) const
 {
     auto chunk_it = chunks.find(loc_of_chunk(loc));
@@ -37,12 +47,7 @@ block world::get_block(const vector3i& loc) const
 
 void world::set_block(const vector3i& loc, const block& block)
 {
-    auto chunk_it = chunks.find(loc_of_chunk(loc));
-    // Create new chunk if it does not exist
-    if (chunk_it == chunks.end())
-        chunks[loc_of_chunk(loc)] = chunk_t{};
-
-    auto& chunk = chunks[loc_of_chunk(loc)];
+    auto& chunk = get_chunk(loc_of_chunk(loc));
     chunk.set_block(loc_in_chunk(loc), block);
 }
 
@@ -144,24 +149,23 @@ static std::vector<unsigned> generate_height_map(unsigned size)
     const combined_noise noise2{r(), r(), 8};
     const octave_noise noise3{r(), 6};
 
-    std::vector<unsigned> height_map;
-    height_map.reserve(size * size);
+    std::vector<unsigned> height_map(size * size);
 
-    for (unsigned i = 0; i < size; ++i)
-        for (unsigned j = 0; j < size; ++j)
-        {
-            double x = (double) ((int)i - (int)size / 2);
-            double z = (double) ((int)j - (int)size / 2);
+#pragma omp parallel for
+    for (unsigned i = 0; i < size * size; ++i)
+    {
+        double x = (double) ((int) (i / size) - (int)size / 2);
+        double z = (double) ((int) (i % size) - (int)size / 2);
 
-            double low = noise1(x * 1.3, z * 1.3) / 6. - 4.;
-            double high = noise2(x * 1.3, z * 1.3) / 5. + 6.;
+        double low = noise1(x * 1.3, z * 1.3) / 6. - 4.;
+        double high = noise2(x * 1.3, z * 1.3) / 5. + 6.;
 
-            double height = ((noise3(x,z) > 0.) ? low : std::max(low, high)) / 2.;
-            if (height < 0)
-                height *= 0.8;
+        double height = ((noise3(x,z) > 0.) ? low : std::max(low, high)) / 2.;
+        if (height < 0)
+            height *= 0.8;
 
-            height_map.push_back((unsigned)height + sea_level);
-        }
+        height_map[i] = (unsigned)height + sea_level;
+    }
 
     return height_map;
 }
@@ -190,7 +194,7 @@ world opengl_demo::generate_world()
             int x = (int)i - (int)size / 2;
             int z = (int)j - (int)size / 2;
 
-            for (unsigned y = 60; y < height - 1; ++y)
+            for (unsigned y = 0; y < height - 1; ++y)
                 world.set_block({ x, y, z }, block{ { x, y, z }, dirt_texture });
             world.set_block({ x, height - 1, z }, block{ { x, height - 1, z }, grass_texture });
         }

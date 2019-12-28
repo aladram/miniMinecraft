@@ -33,9 +33,16 @@ add_executable(${BIN_NAME}
 		src/world/chunk.cc
 		src/world/block.cc
         )
+
 target_include_directories(${BIN_NAME} PRIVATE "include/")
 target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=3 OPENGL_VERSION_MINOR=3)
-target_compile_options(${BIN_NAME} PRIVATE -Wall -Wextra -O0 -g3)
+target_compile_options(${BIN_NAME} PRIVATE -Wall -Wextra -Ofast -march=native)
+
+# OpenMP
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${BIN_NAME} OpenMP::OpenMP_CXX)
+endif()
 
 # GLFW
 set(GLFW_DIR "${LIB_DIR}/glfw")
