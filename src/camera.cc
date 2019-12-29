@@ -51,8 +51,7 @@ std::optional<block> camera::target_block(const world& world) const
         if (loc.z < 0)
             loc.z -= 1;
         auto block = world.get_block(loc);
-        // Check if block not air
-        if (block.texture_ids[0])
+        if (block.type != block_type::AIR)
             return block;
     }
 

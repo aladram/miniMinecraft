@@ -44,8 +44,8 @@ renderer::renderer(const typename opengl_demo::world& _world)
     glGenBuffers(1, &positions_vbo);
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-        glVertexAttribPointer(ATTRIB_BLOCKS_POSITIONS, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, position));
-        glVertexAttribPointer(ATTRIB_BLOCKS_TEXTURES_IDS, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, texture_ids));
+        glVertexAttribPointer(ATTRIB_BLOCKS_POSITIONS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, position));
+        glVertexAttribPointer(ATTRIB_BLOCKS_TEXTURES_IDS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, texture_ids));
       glBindBuffer(GL_ARRAY_BUFFER, 0);
       glEnableVertexAttribArray(ATTRIB_BLOCKS_POSITIONS);
       glEnableVertexAttribArray(ATTRIB_BLOCKS_TEXTURES_IDS);
@@ -68,7 +68,7 @@ void renderer::render() const
 {
     static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
 
-    std::vector<block> blocks;
+    std::vector<gl_block> blocks;
     for (const auto& chunk: world.chunks)
     {
         // Skip chunk if too far
@@ -80,13 +80,13 @@ void renderer::render() const
         for (const auto& block: chunk.second.blocks)
         {
             if (block.visible)
-                blocks.push_back(block);
+                blocks.push_back(block.to_opengl());
         }
     }
 
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(block) * blocks.size(), blocks.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * blocks.size(), blocks.data(), GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 

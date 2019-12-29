@@ -74,7 +74,7 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
         if (block)
         {
             // Set to air
-            block->texture_ids = { 0, 0, 0 };
+            block->type = block_type::AIR;
             world.set_block(block->position, *block);
         }
     }
