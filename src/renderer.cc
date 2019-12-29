@@ -9,6 +9,7 @@ extern "C" {
 #include <stb_image.h>
 
 #include <opengl-demo/math.hh>
+#include <opengl-demo/vertex_attributes.hh>
 #include <opengl-demo/primitives/cube.hh>
 #include <opengl-demo/world/block.hh>
 #include <opengl-demo/world/chunk.hh>
@@ -43,13 +44,13 @@ renderer::renderer(const typename opengl_demo::world& _world)
     glGenBuffers(1, &positions_vbo);
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, position));
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, texture_ids));
+        glVertexAttribPointer(ATTRIB_BLOCKS_POSITIONS, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, position));
+        glVertexAttribPointer(ATTRIB_BLOCKS_TEXTURES_IDS, 3, GL_FLOAT, GL_FALSE, sizeof(block), (void*)offsetof(block, texture_ids));
       glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glEnableVertexAttribArray(3);
-      glEnableVertexAttribArray(4);
-      glVertexAttribDivisor(3, 1);
-      glVertexAttribDivisor(4, 1);
+      glEnableVertexAttribArray(ATTRIB_BLOCKS_POSITIONS);
+      glEnableVertexAttribArray(ATTRIB_BLOCKS_TEXTURES_IDS);
+      glVertexAttribDivisor(ATTRIB_BLOCKS_POSITIONS, 1);
+      glVertexAttribDivisor(ATTRIB_BLOCKS_TEXTURES_IDS, 1);
     glBindVertexArray(0);
 
     // Texture loading

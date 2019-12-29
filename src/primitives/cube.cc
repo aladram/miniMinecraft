@@ -2,6 +2,10 @@
 
 #include <glad/glad.h>
 
+#include <opengl-demo/vertex_attributes.hh>
+
+using namespace opengl_demo;
+
 GLuint generate_cube_vao()
 {
     float data[] = {
@@ -76,12 +80,12 @@ GLuint generate_cube_vao()
     glBindVertexArray(my_vao);
       glBindBuffer(GL_ARRAY_BUFFER, my_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
-        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (5 * sizeof(float)));
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(ATTRIB_CUBE_VERTICES, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL);
+        glVertexAttribPointer(ATTRIB_CUBE_UVS, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
+        glVertexAttribPointer(ATTRIB_CUBE_FACES_TYPES, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (5 * sizeof(float)));
+        glEnableVertexAttribArray(ATTRIB_CUBE_VERTICES);
+        glEnableVertexAttribArray(ATTRIB_CUBE_UVS);
+        glEnableVertexAttribArray(ATTRIB_CUBE_FACES_TYPES);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
