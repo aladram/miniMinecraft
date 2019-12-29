@@ -33,6 +33,7 @@ add_executable(${BIN_NAME}
 		src/renderer.cc
 		src/world/chunk.cc
 		src/world/block.cc
+		src/world/generator.cc
         )
 
 target_include_directories(${BIN_NAME} PRIVATE "include/")

@@ -21,6 +21,4 @@ namespace opengl_demo {
         std::unordered_map<vector3i, chunk, vector3i_hash> chunks;
     };
     using world_t = world;
-
-    world generate_world();
 }

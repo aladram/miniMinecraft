@@ -21,6 +21,7 @@ extern "C" {
 #include <opengl-demo/window.hh>
 #include <opengl-demo/world/block.hh>
 #include <opengl-demo/world/entity.hh>
+#include <opengl-demo/world/generator.hh>
 #include <opengl-demo/world/world.hh>
 #include <opengl-demo/utils/opengl_utils.hh>
 
