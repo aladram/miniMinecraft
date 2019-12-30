@@ -11,12 +11,29 @@ void entity::update(world& world, float dt)
     constexpr vector3 net_force = { 0.f, 2 * -9.81f, 0.f };
     constexpr float attenuation = 0.2f;
 
+    vector3 old_pos = position;
+
     velocity = std::max(1.0f - dt * attenuation, 0.f) * velocity + dt * net_force;
     position += dt * velocity;
 
     for (const auto& block: world.neighbors(position, 7))
     {
-        for (unsigned i: { 1, 0, 2 })
+        std::array<unsigned, 3> axes = { 1, 0, 2 };
+        unsigned height = std::floor(old_pos.y);
+
+        float dx = old_pos.x - (block.position.x + 0.5);
+        float dz = old_pos.z - (block.position.z + 0.5);
+        if (std::abs(old_pos.y - (float)height) > 0.01)
+        {
+            if (std::abs(dz) > std::abs(dx))
+                axes = { 2, 0, 1 };
+            else
+                axes = { 0, 2, 1 };
+        }
+        else if (std::abs(dz) > std::abs(dx))
+            axes = { 1, 2, 0 };
+
+        for (unsigned i: axes)
         {
             if (hitbox().intersects(block.hitbox()))
             {

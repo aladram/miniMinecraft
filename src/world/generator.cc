@@ -284,7 +284,7 @@ world opengl_demo::generate_world()
                 block_type type = block_type::GRASS;
                 if (type_above == block_type::WATER && gravel)
                     type = block_type::GRAVEL;
-                else if (type_above == block_type::AIR && height - 1 < sea_level && sand)
+                else if (type_above == block_type::AIR && height - 1 <= sea_level && sand)
                     type = block_type::SAND;
 
                 world.set_block_unsafe({ x, height - 1, z }, type);
