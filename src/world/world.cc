@@ -47,6 +47,11 @@ void world::set_block_unsafe(const vector3i& loc, const block& block)
     // TODO: remove chunk if block == air and chunk now empty
 }
 
+void world::set_block_unsafe(const vector3i& loc, block_type type)
+{
+    set_block_unsafe(loc, block{loc, type});
+}
+
 void world::update_visibility(const vector3i& loc)
 {
     auto block = get_block(loc);
@@ -66,6 +71,11 @@ void world::set_block(const vector3i& loc, const block& block)
     set_block_unsafe(loc, block);
 
     update_visibility(loc);
+}
+
+void world::set_block(const vector3i& loc, block_type type)
+{
+    set_block(loc, block{loc, type});
 }
 
 std::vector<block> world::neighbors(const vector3i& loc, unsigned diameter) const
