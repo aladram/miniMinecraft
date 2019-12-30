@@ -56,11 +56,9 @@ struct combined_noise
     const octave_noise noise2;
 };
 
-static std::vector<int> generate_height_map(std::random_device& r, unsigned size)
+static std::vector<int> generate_height_map(std::random_device& r, unsigned size, int sea_level)
 {
     assert(size <= (unsigned)std::numeric_limits<int>::max());
-
-    static constexpr int sea_level = 62;
 
     const combined_noise noise1{r(), r(), 8};
     const combined_noise noise2{r(), r(), 8};
@@ -98,17 +96,19 @@ world opengl_demo::generate_world()
         { 0.3, 1.7, 0.3 }
     };
 
-    constexpr unsigned size = 256;
-    constexpr unsigned world_height = 128;
-    constexpr unsigned world_width = size;
-    constexpr unsigned world_depth = size;
+    static constexpr unsigned size = 256;
+    static constexpr int sea_level = 62;
+    static constexpr unsigned world_height = 128;
+    static constexpr unsigned world_width = size;
+    static constexpr unsigned world_depth = size;
+
     std::random_device r;
     std::mt19937 gen{r()};
     std::uniform_real_distribution<> unit_distrib;
     const auto random = [&gen, &unit_distrib] () { return unit_distrib(gen); };
 
     // Height map creation
-    const auto height_map = generate_height_map(r, size);
+    const auto height_map = generate_height_map(r, size, sea_level);
 
     world_t world{player, {}};
 
@@ -116,6 +116,7 @@ world opengl_demo::generate_world()
     {
         const octave_noise noise{r(), 8};
 
+#pragma omp parallel for schedule(dynamic)
         for (unsigned i = 0; i < size; ++i)
             for (unsigned j = 0; j < size; ++j)
             {
@@ -140,6 +141,7 @@ world opengl_demo::generate_world()
         std::uniform_int_distribution<int> y_distrib{0, (int)world_height - 1};
         std::uniform_int_distribution<int> z_distrib{- (int)world_depth / 2, (int)world_depth / 2 - 1};
 
+#pragma omp parallel for schedule(dynamic)
         for (unsigned i = 0; i < caves; ++i)
         {
             vector3i cave = {
@@ -193,8 +195,25 @@ world opengl_demo::generate_world()
         }
     }
 
+    // Filling water
+    {
+#pragma omp parallel for schedule(dynamic)
+        for (unsigned i = 0; i < size; ++i)
+            for (unsigned j = 0; j < size; ++j)
+            {
+                int height = height_map[i * size + j];
+
+                int x = (int)i - (int)size / 2;
+                int z = (int)j - (int)size / 2;
+
+                for (int y = height; y < sea_level; ++y)
+                    world.set_block_unsafe({ x, y, z }, block_type::WATER);
+            }
+    }
+
     // Compute visible blocks
     for (auto& chunk: world.chunks)
+#pragma omp parallel for schedule(dynamic)
         for (auto& block: chunk.second.blocks)
             // Check if block is hidden
             block.visible = block.opaque() && (world.immediate_neighbors(block.position).size() != 6);

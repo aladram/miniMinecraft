@@ -1,5 +1,7 @@
 #include <opengl-demo/world/world.hh>
 
+#include <mutex>
+#include <shared_mutex>
 #include <vector>
 
 #include <opengl-demo/math.hh>
@@ -30,6 +32,8 @@ chunk& world::get_chunk(const vector3i& loc)
 
 block world::get_block(const vector3i& loc) const
 {
+    std::shared_lock<std::shared_mutex> lock(*mutex);
+
     auto chunk_it = chunks.find(loc_of_chunk(loc));
     // Return air if chunk does not exist
     if (chunk_it == chunks.end())
@@ -41,6 +45,8 @@ block world::get_block(const vector3i& loc) const
 
 void world::set_block_unsafe(const vector3i& loc, const block& block)
 {
+    std::unique_lock<std::shared_mutex> lock(*mutex);
+
     auto& chunk = get_chunk(loc_of_chunk(loc));
     chunk.set_block(loc_in_chunk(loc), block);
 

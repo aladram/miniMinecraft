@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+#include <shared_mutex>
 #include <vector>
 
 #include <opengl-demo/math.hh>
@@ -21,6 +23,7 @@ namespace opengl_demo {
 
         entity player;
         std::unordered_map<vector3i, chunk, vector3i_hash> chunks;
+        std::unique_ptr<std::shared_mutex> mutex = std::make_unique<std::shared_mutex>();
     };
     using world_t = world;
 }
