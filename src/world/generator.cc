@@ -195,6 +195,8 @@ world opengl_demo::generate_world()
         }
     }
 
+    // TODO: generate ore veins
+
     // Filling water
     {
 #pragma omp parallel for schedule(dynamic)
@@ -208,6 +210,39 @@ world opengl_demo::generate_world()
 
                 for (int y = height; y < sea_level; ++y)
                     world.set_block_unsafe({ x, y, z }, block_type::WATER);
+            }
+
+        // TODO: flood caves with water randomly
+    }
+
+    // TODO: flood caves with lava randomly
+
+    // Surface generation
+    {
+        const octave_noise noise1{r(), 8};
+        const octave_noise noise2{r(), 8};
+
+#pragma omp parallel for schedule(dynamic)
+        for (unsigned i = 0; i < size; ++i)
+            for (unsigned j = 0; j < size; ++j)
+            {
+                int height = height_map[i * size + j];
+
+                int x = (int)i - (int)size / 2;
+                int z = (int)j - (int)size / 2;
+
+                bool sand = (noise1(x,z) > 8.);
+                bool gravel = (noise2(x,z) > 12.);
+
+                auto type_above = world.get_block({x, height, z }).type;
+
+                block_type type = block_type::GRASS;
+                if (type_above == block_type::WATER && gravel)
+                    type = block_type::GRAVEL;
+                else if (type_above == block_type::AIR && height - 1 < sea_level && sand)
+                    type = block_type::SAND;
+
+                world.set_block_unsafe({ x, height - 1, z }, type);
             }
     }
 
