@@ -85,6 +85,25 @@ static std::vector<int> generate_height_map(std::random_device& r, unsigned size
     return height_map;
 }
 
+static void fill_sphere_from_stone(world& world, const vector3i& center, int r, block_type type)
+{
+    for (int dx = -r; dx < r; ++dx)
+        for (int dy = -r; dy < r; ++dy)
+            for (int dz = -r; dz < r; ++dz)
+            {
+                vector3i off(dx, dy, dz);
+                if (glm::length(vector3(off)) > r)
+                    continue;
+                vector3i loc = center + off;
+                if (world.get_block(loc).type == block_type::STONE)
+                    world.set_block_unsafe(loc, type);
+            }
+}
+
+/*
+ * Generation algorithm described on
+ * https://github.com/UnknownShadow200/ClassiCube/wiki/Minecraft-Classic-map-generation-algorithm
+ */
 world opengl_demo::generate_world()
 {
     entity player{
@@ -106,6 +125,16 @@ world opengl_demo::generate_world()
     std::mt19937 gen{r()};
     std::uniform_real_distribution<> unit_distrib;
     const auto random = [&gen, &unit_distrib] () { return unit_distrib(gen); };
+    std::uniform_int_distribution<int> x_distrib{- (int)world_width / 2, (int)world_width / 2 - 1};
+    std::uniform_int_distribution<int> y_distrib{0, (int)world_height - 1};
+    std::uniform_int_distribution<int> z_distrib{- (int)world_depth / 2, (int)world_depth / 2 - 1};
+    const auto random_pos = [&gen, &x_distrib, &y_distrib, &z_distrib] {
+        return vector3i{
+            x_distrib(gen),
+            y_distrib(gen),
+            z_distrib(gen)
+        };
+    };
 
     // Height map creation
     const auto height_map = generate_height_map(r, size, sea_level);
@@ -137,18 +166,11 @@ world opengl_demo::generate_world()
     // Caving
     {
         unsigned caves = (world_height * world_width * world_depth) / 8192;
-        std::uniform_int_distribution<int> x_distrib{- (int)world_width / 2, (int)world_width / 2 - 1};
-        std::uniform_int_distribution<int> y_distrib{0, (int)world_height - 1};
-        std::uniform_int_distribution<int> z_distrib{- (int)world_depth / 2, (int)world_depth / 2 - 1};
 
 #pragma omp parallel for schedule(dynamic)
         for (unsigned i = 0; i < caves; ++i)
         {
-            vector3i cave = {
-                x_distrib(gen),
-                y_distrib(gen),
-                z_distrib(gen)
-            };
+            vector3i cave = random_pos();
             unsigned length = (unsigned) (random() * random() * 200.f);
 
             float theta = random() * 2 * M_PI;
@@ -178,24 +200,48 @@ world opengl_demo::generate_world()
                         );
 
                     int r = (int) (1.2f + ((float) ((int)world_height - cave.y) / (float)world_height * 3.5f + 1.f) * radius * std::sin((float)l * M_PI / (float)length));
-                    // Fill sphere of radius r with air
-                    for (int dx = -r; dx < r; ++dx)
-                        for (int dy = -r; dy < r; ++dy)
-                            for (int dz = -r; dz < r; ++dz)
-                            {
-                                vector3i off(dx, dy, dz);
-                                if (glm::length(vector3(off)) > r)
-                                    continue;
-                                vector3i loc = center + off;
-                                if (world.get_block(loc).type == block_type::STONE)
-                                    world.set_block_unsafe(loc, block_type::AIR);
-                            }
+                    // Replace stone by air in sphere of radius r
+                    fill_sphere_from_stone(world, center, r, block_type::AIR);
                 }
             }
         }
     }
 
-    // TODO: generate ore veins
+    // Ore veins generation
+    using ores_list = std::initializer_list<std::pair<block_type, float>>;
+    for (auto [ore_type, abundance] : ores_list{{block_type::COAL_ORE, 0.9f}, {block_type::IRON_ORE, 0.7f}, {block_type::GOLD_ORE, 0.5f}})
+    {
+        unsigned veins = (world_height * world_width * world_depth) / 16384;
+
+#pragma omp parallel for schedule(dynamic)
+        for (unsigned i = 0; i < veins; ++i)
+        {
+            vector3i vein = random_pos();
+            unsigned length = (unsigned) (random() * random() * 75.f * abundance);
+
+            float theta = random() * 2 * M_PI;
+            float phi = random() * 2 * M_PI;
+            float dtheta = 0, dphi = 0;
+
+            for (unsigned l = 0; l < length; ++l)
+            {
+                vein += vector3(
+                        std::sin(theta) * std::cos(phi),
+                        std::cos(theta) * std::cos(phi),
+                        std::sin(phi)
+                    );
+
+                theta += dtheta * 0.2f;
+                phi = phi / 2.f + dphi / 4.f;
+                dtheta = dtheta * 0.9f + random() - random();
+                dphi = dphi * 0.9f + random() - random();
+
+                int r = (int) (abundance * std::sin((float)l * M_PI / (float)length) + 1.);
+                // Replace stone by air in sphere of radius r
+                fill_sphere_from_stone(world, vein, r, ore_type);
+            }
+        }
+    }
 
     // Filling water
     {
@@ -211,10 +257,9 @@ world opengl_demo::generate_world()
                 for (int y = height; y < sea_level; ++y)
                     world.set_block_unsafe({ x, y, z }, block_type::WATER);
             }
-
-        // TODO: flood caves with water randomly
     }
 
+    // TODO: flood caves with water randomly
     // TODO: flood caves with lava randomly
 
     // Surface generation
