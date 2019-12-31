@@ -20,6 +20,7 @@ namespace opengl_demo {
         void set_block(const vector3i& loc, block_type type);
         std::vector<block> neighbors(const vector3i& loc, unsigned diameter) const;
         std::vector<block> immediate_neighbors(const vector3i& loc) const;
+        std::vector<block> get_blocks(const vector3i& from, const vector3i& to) const;
 
         entity player;
         std::unordered_map<vector3i, chunk, vector3i_hash> chunks;

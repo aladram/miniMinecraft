@@ -85,6 +85,11 @@ static std::vector<int> generate_height_map(std::random_device& r, unsigned size
     return height_map;
 }
 
+static unsigned height_map_idx(unsigned size, int x, int z)
+{
+    return size * (size / 2 + x) + (size / 2 + z);
+}
+
 static void fill_sphere_from_stone(world& world, const vector3i& center, int r, block_type type)
 {
     for (int dx = -r; dx < r; ++dx)
@@ -145,7 +150,7 @@ world opengl_demo::generate_world()
     {
         const octave_noise noise{r(), 8};
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for
         for (unsigned i = 0; i < size; ++i)
             for (unsigned j = 0; j < size; ++j)
             {
@@ -191,18 +196,18 @@ world opengl_demo::generate_world()
                 dtheta = dtheta * 0.9f + random() - random();
                 dphi = dphi * 0.75f + random() - random();
 
-                if (random() < 0.75)
-                {
-                    vector3i center = cave + vector3i(
-                            (random() * 4.f - 2.f) * 0.2f,
-                            (random() * 4.f - 2.f) * 0.2f,
-                            (random() * 4.f - 2.f) * 0.2f
-                        );
+                if (random() > 0.75f)
+                    continue;
 
-                    int r = (int) (1.2f + ((float) ((int)world_height - cave.y) / (float)world_height * 3.5f + 1.f) * radius * std::sin((float)l * M_PI / (float)length));
-                    // Replace stone by air in sphere of radius r
-                    fill_sphere_from_stone(world, center, r, block_type::AIR);
-                }
+                vector3i center = cave + vector3i(
+                        (random() * 4.f - 2.f) * 0.2f,
+                        (random() * 4.f - 2.f) * 0.2f,
+                        (random() * 4.f - 2.f) * 0.2f
+                    );
+
+                int r = (int) (1.2f + ((float) ((int)world_height - cave.y) / (float)world_height * 3.5f + 1.f) * radius * std::sin((float)l * M_PI / (float)length));
+                // Replace stone by air in sphere of radius r
+                fill_sphere_from_stone(world, center, r, block_type::AIR);
             }
         }
     }
@@ -245,7 +250,7 @@ world opengl_demo::generate_world()
 
     // Filling water
     {
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for
         for (unsigned i = 0; i < size; ++i)
             for (unsigned j = 0; j < size; ++j)
             {
@@ -267,7 +272,7 @@ world opengl_demo::generate_world()
         const octave_noise noise1{r(), 8};
         const octave_noise noise2{r(), 8};
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for
         for (unsigned i = 0; i < size; ++i)
             for (unsigned j = 0; j < size; ++j)
             {
@@ -291,6 +296,77 @@ world opengl_demo::generate_world()
             }
     }
 
+    // Trees generation
+    {
+        unsigned forests = (world_height * world_width * world_depth) / 4000;
+
+#pragma omp parallel for schedule(dynamic)
+        for (unsigned i = 0; i < forests; ++i)
+        {
+            vector3i forest = random_pos();
+
+            for (unsigned j = 0; j < 20; ++j)
+            {
+                vector3i tree = forest;
+
+                for (unsigned k = 0; k < 20; ++k)
+                {
+                    tree += vector3i(
+                            (int) (6.f * random()) - (int) (6.f * random()),
+                            0,
+                            (int) (6.f * random()) - (int) (6.f * random())
+                        );
+
+                    if (random() > 0.25f)
+                        continue;
+
+                    tree.y = height_map[height_map_idx(size, tree.x, tree.z)];
+                    int height = (int) (random() * 3.f + 4.f);
+
+                    if (!world.get_blocks(
+                                tree + vector3i(-1, 0, -1),
+                                tree + vector3i(2, height - 4, 2)
+                            ).empty())
+                        continue;
+                    if (!world.get_blocks(
+                                tree + vector3i(-2, height - 4, -2),
+                                tree + vector3i(3, height, 3)
+                            ).empty())
+                        continue;
+
+                    // [0, height - 4[
+                    for (int y_off = 0; y_off < height - 4; ++y_off)
+                        world.set_block(tree + vector3i(0, y_off, 0), block_type::LOG);
+                    // height - 4 and height - 3
+                    for (auto y_off: { height - 4, height - 3 })
+                    {
+                        for (int x_off = -2; x_off < 3; ++x_off)
+                            for (int z_off = -2; z_off < 3; ++z_off)
+                                world.set_block(tree + vector3i(x_off, y_off, z_off), block_type::LEAVES);
+                        world.set_block(tree + vector3i(0, y_off, 0), block_type::LOG);
+                        world.set_block(
+                                tree + vector3i(-2, y_off, -2),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                        world.set_block(
+                                tree + vector3i(-2, y_off, 2),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                        world.set_block(
+                                tree + vector3i(2, y_off, -2),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                        world.set_block(
+                                tree + vector3i(2, y_off, 2),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                    }
+                    // TODO: height - 2 and height - 1
+                }
+            }
+        }
+    }
+
     // Compute visible blocks
     for (auto& chunk: world.chunks)
 #pragma omp parallel for schedule(dynamic)
@@ -301,7 +377,7 @@ world opengl_demo::generate_world()
     const auto highest_point_idx = std::max_element(height_map.begin(), height_map.end()) - height_map.begin();
     world.player.position.x = (float) (highest_point_idx / size - size / 2);
     world.player.position.z = (float) (highest_point_idx % size - size / 2);
-    world.player.position.y = height_map[size * (size / 2 + (int)world.player.position.x) + (size / 2 + (int)world.player.position.z)] + 3;
+    world.player.position.y = height_map[height_map_idx(size, (int) world.player.position.x, (int) world.player.position.z)] + 3;
 
     return world;
 }

@@ -125,3 +125,24 @@ std::vector<block> world::immediate_neighbors(const vector3i& loc) const
 
     return neighborhood;
 }
+
+std::vector<block> world::get_blocks(const vector3i& from, const vector3i& to) const
+{
+    assert(from.x <= to.x);
+    assert(from.y <= to.y);
+    assert(from.z <= to.z);
+
+    std::vector<block> blocks;
+    blocks.reserve((to.x - from.x) * (to.y - from.y) * (to.z - from.z));
+
+    for (unsigned x = from.x; x < to.x; ++x)
+        for (unsigned y = from.y; y < to.y; ++y)
+            for (unsigned z = from.z; z < to.z; ++z)
+            {
+                const auto& block = get_block({x, y, z});
+                if (block.type != block_type::AIR)
+                    blocks.push_back(block);
+            }
+
+    return blocks;
+}
