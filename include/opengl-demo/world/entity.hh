@@ -18,6 +18,7 @@ namespace opengl_demo {
             return position + eyes_offset;
         }
 
+        void update_side(world& world, unsigned i);
         void update(world& world, float dt);
 
         vector3 measurements;

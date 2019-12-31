@@ -47,14 +47,19 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
 
     // Move on arrow keys press
     float lambda_t = lambda * dt;
+    vector3 pos = world.player.position;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        world.player.position += lambda_t * forward;
+        pos += lambda_t * forward;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        world.player.position -= lambda_t * forward;
+        pos -= lambda_t * forward;
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        world.player.position -= lambda_t * right;
+        pos -= lambda_t * right;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        world.player.position += lambda_t * right;
+        pos += lambda_t * right;
+    world.player.position[0] = pos[0];
+    world.player.update_side(world, 0);
+    world.player.position[2] = pos[2];
+    world.player.update_side(world, 2);
 
     // Jump on space press
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && lastJump > jumpDelay)
@@ -81,7 +86,6 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
     else
         lastBreak += dt;
 
-    world.player.update(world, 0);
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
