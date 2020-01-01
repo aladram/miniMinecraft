@@ -12,7 +12,9 @@ namespace opengl_demo {
 
         const typename opengl_demo::world& world;
         GLuint world_vao;
+        GLuint leaves_vao;
         GLuint positions_vbo;
+        GLuint leaves_positions_vbo;
         GLuint texture;
     };
 }

@@ -8,6 +8,6 @@ uniform sampler2D tex;
 void main()
 {
     color_out = texture(tex, uv_f);
-    if (color_out.a < 0.5)
+    if (color_out.a == 0)
         discard;
 }

@@ -2,4 +2,8 @@
 
 #include <glad/glad.h>
 
-GLuint generate_cube_vao();
+namespace opengl_demo
+{
+    GLuint generate_cube_vao();
+    GLuint generate_cube_mirror_vao();
+}

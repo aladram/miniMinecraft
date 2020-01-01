@@ -38,12 +38,27 @@ static void generate_texture(void *buf, unsigned buf_size)
 renderer::renderer(const typename opengl_demo::world& _world)
     : world{_world}
 {
-    // Generate a single block VAO
+    // Generate single block VAOs
     world_vao = generate_cube_vao();
-    // Generate block positions VBO for this VAO
+    leaves_vao = generate_cube_mirror_vao();
+
+    // Generate block positions VBO for world VAO
     glGenBuffers(1, &positions_vbo);
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
+        glVertexAttribPointer(ATTRIB_BLOCKS_POSITIONS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, position));
+        glVertexAttribPointer(ATTRIB_BLOCKS_TEXTURES_IDS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, texture_ids));
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glEnableVertexAttribArray(ATTRIB_BLOCKS_POSITIONS);
+      glEnableVertexAttribArray(ATTRIB_BLOCKS_TEXTURES_IDS);
+      glVertexAttribDivisor(ATTRIB_BLOCKS_POSITIONS, 1);
+      glVertexAttribDivisor(ATTRIB_BLOCKS_TEXTURES_IDS, 1);
+    glBindVertexArray(0);
+
+    // Generate block positions VBO for leaves VAO
+    glGenBuffers(1, &leaves_positions_vbo);
+    glBindVertexArray(leaves_vao);
+      glBindBuffer(GL_ARRAY_BUFFER, leaves_positions_vbo);
         glVertexAttribPointer(ATTRIB_BLOCKS_POSITIONS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, position));
         glVertexAttribPointer(ATTRIB_BLOCKS_TEXTURES_IDS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, texture_ids));
       glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -69,6 +84,7 @@ void renderer::render() const
     static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
 
     std::vector<gl_block> blocks;
+    std::vector<gl_block> leaves;
     for (const auto& chunk: world.chunks)
     {
         // Skip chunk if too far
@@ -79,18 +95,29 @@ void renderer::render() const
         // Add blocks to VBO
         for (const auto& block: chunk.second.blocks)
         {
-            if (block.visible || (block.type == block_type::LEAVES))
+            if (block.type == block_type::LEAVES)
+                leaves.push_back(block.to_opengl());
+            else if (block.visible)
                 blocks.push_back(block.to_opengl());
         }
     }
 
+    // Texture binding
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Blocks rendering
     glBindVertexArray(world_vao);
       glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * blocks.size(), blocks.data(), GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, blocks.size());
     glBindVertexArray(0);
 
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glBindVertexArray(world_vao);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, blocks.size());
+    // Leaves rendering
+    glBindVertexArray(leaves_vao);
+      glBindBuffer(GL_ARRAY_BUFFER, leaves_positions_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * leaves.size(), leaves.data(), GL_STATIC_DRAW);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, leaves.size());
+    glBindVertexArray(0);
 }
