@@ -119,7 +119,7 @@ std::vector<block> world::immediate_neighbors(const vector3i& loc) const
     for (const auto& off: offsets)
     {
         const auto& block = get_block(loc + off);
-        if (block.type != block_type::AIR)
+        if (block.opaque())
             neighborhood.push_back(block);
     }
 

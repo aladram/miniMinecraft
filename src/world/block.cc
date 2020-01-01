@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <opengl-demo/math.hh>
 
@@ -14,7 +15,14 @@ aabb block::hitbox() const
 
 bool block::opaque() const
 {
-    return type != block_type::AIR;
+    static const std::unordered_set<block_type> transparent_blocks = {
+        block_type::AIR,
+        block_type::WATER,
+        block_type::LEAVES
+    };
+
+    // Returns true if not in transparent blocks set
+    return transparent_blocks.find(type) == transparent_blocks.end();
 }
 
 gl_block block::to_opengl() const

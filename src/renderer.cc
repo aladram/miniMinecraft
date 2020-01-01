@@ -29,7 +29,7 @@ static void generate_texture(void *buf, unsigned buf_size)
     if (!data)
         errx(1, "Texture load failed");
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -79,7 +79,7 @@ void renderer::render() const
         // Add blocks to VBO
         for (const auto& block: chunk.second.blocks)
         {
-            if (block.visible)
+            if (block.visible || (block.type == block_type::LEAVES))
                 blocks.push_back(block.to_opengl());
         }
     }
