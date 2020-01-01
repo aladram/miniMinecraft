@@ -298,7 +298,7 @@ world opengl_demo::generate_world()
 
     // Trees generation
     {
-        unsigned forests = (world_height * world_width * world_depth) / 4000;
+        unsigned forests = (world_width * world_depth) / 4000;
 
 #pragma omp parallel for schedule(dynamic)
         for (unsigned i = 0; i < forests; ++i)
@@ -316,6 +316,11 @@ world opengl_demo::generate_world()
                             0,
                             (int) (6.f * random()) - (int) (6.f * random())
                         );
+
+                    if (tree.x < - (int)size / 2 || tree.x >= (int)size / 2)
+                        continue;
+                    if (tree.z < - (int)size / 2 || tree.z >= (int)size / 2)
+                        continue;
 
                     if (random() > 0.25f)
                         continue;
@@ -336,32 +341,64 @@ world opengl_demo::generate_world()
 
                     // [0, height - 4[
                     for (int y_off = 0; y_off < height - 4; ++y_off)
-                        world.set_block(tree + vector3i(0, y_off, 0), block_type::LOG);
+                        world.set_block_unsafe(tree + vector3i(0, y_off, 0), block_type::LOG);
                     // height - 4 and height - 3
                     for (auto y_off: { height - 4, height - 3 })
                     {
                         for (int x_off = -2; x_off < 3; ++x_off)
                             for (int z_off = -2; z_off < 3; ++z_off)
-                                world.set_block(tree + vector3i(x_off, y_off, z_off), block_type::LEAVES);
-                        world.set_block(tree + vector3i(0, y_off, 0), block_type::LOG);
-                        world.set_block(
+                                world.set_block_unsafe(tree + vector3i(x_off, y_off, z_off), block_type::LEAVES);
+                        world.set_block_unsafe(tree + vector3i(0, y_off, 0), block_type::LOG);
+                        world.set_block_unsafe(
                                 tree + vector3i(-2, y_off, -2),
                                 (random() < 0.5) ? block_type::LEAVES : block_type::AIR
                             );
-                        world.set_block(
+                        world.set_block_unsafe(
                                 tree + vector3i(-2, y_off, 2),
                                 (random() < 0.5) ? block_type::LEAVES : block_type::AIR
                             );
-                        world.set_block(
+                        world.set_block_unsafe(
                                 tree + vector3i(2, y_off, -2),
                                 (random() < 0.5) ? block_type::LEAVES : block_type::AIR
                             );
-                        world.set_block(
+                        world.set_block_unsafe(
                                 tree + vector3i(2, y_off, 2),
                                 (random() < 0.5) ? block_type::LEAVES : block_type::AIR
                             );
                     }
-                    // TODO: height - 2 and height - 1
+                    // height - 2
+                    {
+                        int y_off = height - 2;
+                        for (int x_off = -1; x_off < 2; ++x_off)
+                            for (int z_off = -1; z_off < 2; ++z_off)
+                                world.set_block_unsafe(tree + vector3i(x_off, y_off, z_off), block_type::LEAVES);
+                        world.set_block_unsafe(tree + vector3i(0, y_off, 0), block_type::LOG);
+                        world.set_block_unsafe(
+                                tree + vector3i(-1, y_off, -1),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                        world.set_block_unsafe(
+                                tree + vector3i(-1, y_off, 1),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                        world.set_block_unsafe(
+                                tree + vector3i(1, y_off, -1),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                        world.set_block_unsafe(
+                                tree + vector3i(1, y_off, 1),
+                                (random() < 0.5) ? block_type::LEAVES : block_type::AIR
+                            );
+                    }
+                    // height - 1
+                    {
+                        int y_off = height - 1;
+                        world.set_block_unsafe(tree + vector3i(0, y_off, 0), block_type::LEAVES);
+                        world.set_block_unsafe(tree + vector3i(-1, y_off, 0), block_type::LEAVES);
+                        world.set_block_unsafe(tree + vector3i(1, y_off, 0), block_type::LEAVES);
+                        world.set_block_unsafe(tree + vector3i(0, y_off, -1), block_type::LEAVES);
+                        world.set_block_unsafe(tree + vector3i(0, y_off, 1), block_type::LEAVES);
+                    }
                 }
             }
         }
