@@ -41,6 +41,7 @@ renderer::renderer(const typename opengl_demo::world& _world)
     // Generate single block VAOs
     world_vao = generate_cube_vao();
     leaves_vao = generate_cube_mirror_vao();
+    water_vao = generate_quad_vao();
 
     // Generate block positions VBO for world VAO
     glGenBuffers(1, &positions_vbo);
@@ -68,6 +69,19 @@ renderer::renderer(const typename opengl_demo::world& _world)
       glVertexAttribDivisor(ATTRIB_BLOCKS_TEXTURES_IDS, 1);
     glBindVertexArray(0);
 
+    // Generate block positions VBO for water VAO
+    glGenBuffers(1, &water_positions_vbo);
+    glBindVertexArray(water_vao);
+      glBindBuffer(GL_ARRAY_BUFFER, water_positions_vbo);
+        glVertexAttribPointer(ATTRIB_BLOCKS_POSITIONS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, position));
+        glVertexAttribPointer(ATTRIB_BLOCKS_TEXTURES_IDS, 3, GL_FLOAT, GL_FALSE, sizeof(gl_block), (void*)offsetof(gl_block, texture_ids));
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glEnableVertexAttribArray(ATTRIB_BLOCKS_POSITIONS);
+      glEnableVertexAttribArray(ATTRIB_BLOCKS_TEXTURES_IDS);
+      glVertexAttribDivisor(ATTRIB_BLOCKS_POSITIONS, 1);
+      glVertexAttribDivisor(ATTRIB_BLOCKS_TEXTURES_IDS, 1);
+    glBindVertexArray(0);
+
     // Texture loading
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -85,6 +99,7 @@ void renderer::render() const
 
     std::vector<gl_block> blocks;
     std::vector<gl_block> leaves;
+    std::vector<gl_block> water;
     for (const auto& chunk: world.chunks)
     {
         // Skip chunk if too far
@@ -95,7 +110,13 @@ void renderer::render() const
         // Add blocks to VBO
         for (const auto& block: chunk.second.blocks)
         {
-            if (block.type == block_type::LEAVES)
+            if (block.type == block_type::WATER)
+            {
+                // Render only if air on top
+                if (world.get_block(block.position + vector3(0, 1, 0)).type == block_type::AIR)
+                    water.push_back(block.to_opengl());
+            }
+            else if (block.type == block_type::LEAVES)
                 leaves.push_back(block.to_opengl());
             else if (block.visible)
                 blocks.push_back(block.to_opengl());
@@ -119,5 +140,13 @@ void renderer::render() const
         glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * leaves.size(), leaves.data(), GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
       glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, leaves.size());
+    glBindVertexArray(0);
+
+    // Water rendering
+    glBindVertexArray(water_vao);
+      glBindBuffer(GL_ARRAY_BUFFER, water_positions_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * water.size(), water.data(), GL_STATIC_DRAW);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, water.size());
     glBindVertexArray(0);
 }

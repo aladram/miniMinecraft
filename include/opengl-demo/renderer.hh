@@ -10,11 +10,13 @@ namespace opengl_demo {
         renderer(const world& _world);
         void render() const;
 
-        const typename opengl_demo::world& world;
+        const world_t& world;
         GLuint world_vao;
         GLuint leaves_vao;
+        GLuint water_vao;
         GLuint positions_vbo;
         GLuint leaves_positions_vbo;
+        GLuint water_positions_vbo;
         GLuint texture;
     };
 }
