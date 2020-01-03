@@ -3,13 +3,20 @@
 extern "C" {
 #include <err.h>
 }
+#include <cstdio>
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <opengl-demo/my-shaders.hh>
+#include <opengl-demo/program.hh>
 #include <opengl-demo/math.hh>
+#include <opengl-demo/window.hh>
 #include <opengl-demo/vertex_attributes.hh>
+#include <opengl-demo/utils/opengl_utils.hh>
 #include <opengl-demo/primitives/cube.hh>
 #include <opengl-demo/world/block.hh>
 #include <opengl-demo/world/chunk.hh>
@@ -35,9 +42,41 @@ static void generate_texture(void *buf, unsigned buf_size)
     stbi_image_free(data);
 }
 
+void GLAPIENTRY
+message_callback( GLenum source,
+                  GLenum type,
+                  GLuint id,
+                  GLenum severity,
+                  GLsizei length,
+                  const GLchar* message,
+                  const void* userParam )
+{
+    (void)source, (void)id, (void)length, (void)userParam;
+
+    if (type != GL_DEBUG_TYPE_ERROR)
+        return;
+    fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
 renderer::renderer(const typename opengl_demo::world& _world)
     : world{_world}
 {
+#if !defined(NDEBUG) && OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MINOR >= 3
+    // Enable debug output
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(message_callback, 0);
+#endif
+
+    glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    program = program_t{compile_my_shaders()};
+    program.use();
+
     // Generate single block VAOs
     world_vao = generate_cube_vao();
     leaves_vao = generate_cube_mirror_vao();
@@ -93,10 +132,26 @@ renderer::renderer(const typename opengl_demo::world& _world)
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderer::render() const
+void renderer::render(int width, int height) const
 {
-    static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
+    glm::mat4 projection = glm::perspective(
+            // FOV
+            glm::radians(70.f),
+            // Aspect ratio
+            (float)width / (float)height,
+            // Near & far
+            0.1f, 100.0f
+        );
+    glm::mat4 view = camera.look_at();
 
+    program.put("view_proj", projection * view);
+    program.use();
+
+    // Blue sky background
+    glClearColor(58.8 / 100., 83.5 / 100., 100. / 100., 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
     std::vector<gl_block> blocks;
     std::vector<gl_block> leaves;
     std::vector<gl_block> water;

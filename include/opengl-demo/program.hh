@@ -2,12 +2,13 @@
 
 #include <glad/glad.h>
 
+#include <opengl-demo/math.hh>
 #include <opengl-demo/utils/opengl_utils.hh>
 
 namespace opengl_demo
 {
     struct program {
-        auto loc(const char* name)
+        auto loc(const char* name) const
         {
             auto l = glGetUniformLocation(p_id, name);
             TEST_OPENGL_ERROR();
@@ -15,36 +16,16 @@ namespace opengl_demo
             return l;
         }
 
-        void use()
+        void use() const
         {
             glUseProgram(p_id);
             TEST_OPENGL_ERROR();
         }
 
         template <typename T>
-        void put(const char* name, const T& val);
+        void put(const char* name, const T& val) const;
 
         GLuint p_id;
     };
-
-    template <>
-    void program::put<glm::vec4>(const char* name, const glm::vec4& val)
-    {
-        glUniform4fv(loc(name), 1, &val[0]);
-        TEST_OPENGL_ERROR();
-    }
-
-    template <>
-    void program::put<glm::mat4>(const char* name, const glm::mat4& val)
-    {
-        glUniformMatrix4fv(loc(name), 1, GL_FALSE, &val[0][0]);
-        TEST_OPENGL_ERROR();
-    }
-
-    template<>
-    void program::put<GLint>(const char* name, const GLint& val)
-    {
-        glUniform1i(loc(name), val);
-        TEST_OPENGL_ERROR();
-    }
+    using program_t = program;
 }

@@ -20,13 +20,13 @@ add_custom_command(OUTPUT terrain_png.c
 add_executable(${BIN_NAME}
 		vertex_shader.c
 		fragment_shader.c
-        terrain_png.c
+		terrain_png.c
 		src/main.cc
 		src/my-shaders.cc
 		src/utils/shaders.cc
 		src/window.cc
-        src/camera.cc
-        src/primitives/cube.cc
+		src/camera.cc
+		src/primitives/cube.cc
 		src/world/world.cc
 		src/world/entity.cc
 		src/world/aabb.cc
@@ -34,6 +34,7 @@ add_executable(${BIN_NAME}
 		src/world/chunk.cc
 		src/world/block.cc
 		src/world/generator.cc
+		src/program.cc
         )
 
 target_include_directories(${BIN_NAME} PRIVATE "include/")
