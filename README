@@ -1,0 +1,8 @@
+To install the dependencies, please type the following command
+git submodule --init
+
+To build the projet
+mkdir build
+cd build
+cmake ..
+make
