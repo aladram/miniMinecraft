@@ -145,6 +145,7 @@ void renderer::render(int width, int height) const
     glm::mat4 view = camera.look_at();
 
     program.put("view_proj", projection * view);
+    program.put("dir_light", - vector3(1.f/2.f, std::sqrt(3.f)/2.f, 0));
     program.use();
 
     // Blue sky background

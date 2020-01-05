@@ -11,9 +11,17 @@ using namespace opengl_demo;
 struct vertex
 {
     float position[3];
+    float normal[3];
     float uv[2];
     float face_type;
 };
+using vertex_t = vertex;
+
+struct triangle
+{
+    vertex_t vertices[3];
+};
+using triangle_t = triangle;
 
 static GLuint generate_vao(float* data, size_t size)
 {
@@ -25,9 +33,11 @@ static GLuint generate_vao(float* data, size_t size)
       glBindBuffer(GL_ARRAY_BUFFER, my_vbo);
         glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
         glVertexAttribPointer(ATTRIB_CUBE_VERTICES, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, position));
+        glVertexAttribPointer(ATTRIB_CUBE_NORMALS, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, normal));
         glVertexAttribPointer(ATTRIB_CUBE_UVS, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, uv));
         glVertexAttribPointer(ATTRIB_CUBE_FACES_TYPES, 1, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, face_type));
         glEnableVertexAttribArray(ATTRIB_CUBE_VERTICES);
+        glEnableVertexAttribArray(ATTRIB_CUBE_NORMALS);
         glEnableVertexAttribArray(ATTRIB_CUBE_UVS);
         glEnableVertexAttribArray(ATTRIB_CUBE_FACES_TYPES);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -39,67 +49,67 @@ static GLuint generate_vao(float* data, size_t size)
 GLuint opengl_demo::generate_cube_vao()
 {
     float data[] = {
-        // Vertices        // UVs     // Face type (0: side, 1: top, 2: bottom)
+        // Vertices        // Normals         // UVs     // Face type (0: side, 1: top, 2: bottom)
 
         // Face 1 (front)
         // Triangle 1
-        0.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        0.f, 0.f, 1.f,     1.f, 0.f,  0.f,
-        0.f, 1.f, 1.f,     1.f, 1.f,  0.f,
+        0.f, 0.f, 0.f,     -1.f, 0.f, 0.f,    0.f, 0.f,  0.f,
+        0.f, 0.f, 1.f,     -1.f, 0.f, 0.f,    1.f, 0.f,  0.f,
+        0.f, 1.f, 1.f,     -1.f, 0.f, 0.f,    1.f, 1.f,  0.f,
         // Triangle 2
-        0.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        0.f, 1.f, 1.f,     1.f, 1.f,  0.f,
-        0.f, 1.f, 0.f,     0.f, 1.f,  0.f,
+        0.f, 0.f, 0.f,     -1.f, 0.f, 0.f,    0.f, 0.f,  0.f,
+        0.f, 1.f, 1.f,     -1.f, 0.f, 0.f,    1.f, 1.f,  0.f,
+        0.f, 1.f, 0.f,     -1.f, 0.f, 0.f,    0.f, 1.f,  0.f,
 
         // Face 2 (right)
         // Triangle 1
-        0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
-        1.f, 0.f, 1.f,     1.f, 0.f,  0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  0.f,
+        0.f, 0.f, 1.f,     0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
+        1.f, 0.f, 1.f,     0.f, 0.f, 1.f,     1.f, 0.f,  0.f,
+        1.f, 1.f, 1.f,     0.f, 0.f, 1.f,     1.f, 1.f,  0.f,
         // Triangle 2
-        0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  0.f,
-        0.f, 1.f, 1.f,     0.f, 1.f,  0.f,
+        0.f, 0.f, 1.f,     0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
+        1.f, 1.f, 1.f,     0.f, 0.f, 1.f,     1.f, 1.f,  0.f,
+        0.f, 1.f, 1.f,     0.f, 0.f, 1.f,     0.f, 1.f,  0.f,
 
         // Face 3 (back)
         // Triangle 1
-        1.f, 0.f, 1.f,     0.f, 0.f,  0.f,
-        1.f, 0.f, 0.f,     1.f, 0.f,  0.f,
-        1.f, 1.f, 0.f,     1.f, 1.f,  0.f,
+        1.f, 0.f, 1.f,     1.f, 0.f, 0.f,     0.f, 0.f,  0.f,
+        1.f, 0.f, 0.f,     1.f, 0.f, 0.f,     1.f, 0.f,  0.f,
+        1.f, 1.f, 0.f,     1.f, 0.f, 0.f,     1.f, 1.f,  0.f,
         // Triangle 2
-        1.f, 0.f, 1.f,     0.f, 0.f,  0.f,
-        1.f, 1.f, 0.f,     1.f, 1.f,  0.f,
-        1.f, 1.f, 1.f,     0.f, 1.f,  0.f,
+        1.f, 0.f, 1.f,     1.f, 0.f, 0.f,     0.f, 0.f,  0.f,
+        1.f, 1.f, 0.f,     1.f, 0.f, 0.f,     1.f, 1.f,  0.f,
+        1.f, 1.f, 1.f,     1.f, 0.f, 0.f,     0.f, 1.f,  0.f,
 
         // Face 4 (left)
         // Triangle 1
-        1.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        0.f, 0.f, 0.f,     1.f, 0.f,  0.f,
-        0.f, 1.f, 0.f,     1.f, 1.f,  0.f,
+        1.f, 0.f, 0.f,     0.f, 0.f, -1.f,    0.f, 0.f,  0.f,
+        0.f, 0.f, 0.f,     0.f, 0.f, -1.f,    1.f, 0.f,  0.f,
+        0.f, 1.f, 0.f,     0.f, 0.f, -1.f,    1.f, 1.f,  0.f,
         // Triangle 2
-        1.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        0.f, 1.f, 0.f,     1.f, 1.f,  0.f,
-        1.f, 1.f, 0.f,     0.f, 1.f,  0.f,
+        1.f, 0.f, 0.f,     0.f, 0.f, -1.f,    0.f, 0.f,  0.f,
+        0.f, 1.f, 0.f,     0.f, 0.f, -1.f,    1.f, 1.f,  0.f,
+        1.f, 1.f, 0.f,     0.f, 0.f, -1.f,    0.f, 1.f,  0.f,
 
         // Face 5 (top)
         // Triangle 1
-        0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
-        0.f, 1.f, 1.f,     1.f, 0.f,  1.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  1.f,
+        0.f, 1.f, 0.f,     0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
+        0.f, 1.f, 1.f,     0.f, 1.f, 0.f,     1.f, 0.f,  1.f,
+        1.f, 1.f, 1.f,     0.f, 1.f, 0.f,     1.f, 1.f,  1.f,
         // Triangle 2
-        0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  1.f,
-        1.f, 1.f, 0.f,     0.f, 1.f,  1.f,
+        0.f, 1.f, 0.f,     0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
+        1.f, 1.f, 1.f,     0.f, 1.f, 0.f,     1.f, 1.f,  1.f,
+        1.f, 1.f, 0.f,     0.f, 1.f, 0.f,     0.f, 1.f,  1.f,
 
         // Face 6 (bottom)
         // Triangle 1
-        1.f, 0.f, 0.f,     0.f, 0.f,  2.f,
-        1.f, 0.f, 1.f,     1.f, 0.f,  2.f,
-        0.f, 0.f, 1.f,     1.f, 1.f,  2.f,
+        1.f, 0.f, 0.f,     0.f, -1.f, 0.f,    0.f, 0.f,  2.f,
+        1.f, 0.f, 1.f,     0.f, -1.f, 0.f,    1.f, 0.f,  2.f,
+        0.f, 0.f, 1.f,     0.f, -1.f, 0.f,    1.f, 1.f,  2.f,
         // Triangle 2
-        1.f, 0.f, 0.f,     0.f, 0.f,  2.f,
-        0.f, 0.f, 1.f,     1.f, 1.f,  2.f,
-        0.f, 0.f, 0.f,     0.f, 1.f,  2.f
+        1.f, 0.f, 0.f,     0.f, -1.f, 0.f,    0.f, 0.f,  2.f,
+        0.f, 0.f, 1.f,     0.f, -1.f, 0.f,    1.f, 1.f,  2.f,
+        0.f, 0.f, 0.f,     0.f, -1.f, 0.f,    0.f, 1.f,  2.f
     };
 
     return generate_vao(data, sizeof(data));
@@ -108,67 +118,67 @@ GLuint opengl_demo::generate_cube_vao()
 GLuint opengl_demo::generate_cube_mirror_vao()
 {
     float data[] = {
-        // Vertices        // UVs     // Face type (0: side, 1: top, 2: bottom)
+        // Vertices        // Normals         // UVs     // Face type (0: side, 1: top, 2: bottom)
 
         // Face 1 (front)
         // Triangle 1
-        0.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        0.f, 0.f, 1.f,     1.f, 0.f,  0.f,
-        0.f, 1.f, 1.f,     1.f, 1.f,  0.f,
+        0.f, 0.f, 0.f,     -1.f, 0.f, 0.f,    0.f, 0.f,  0.f,
+        0.f, 0.f, 1.f,     -1.f, 0.f, 0.f,    1.f, 0.f,  0.f,
+        0.f, 1.f, 1.f,     -1.f, 0.f, 0.f,    1.f, 1.f,  0.f,
         // Triangle 2
-        0.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        0.f, 1.f, 1.f,     1.f, 1.f,  0.f,
-        0.f, 1.f, 0.f,     0.f, 1.f,  0.f,
+        0.f, 0.f, 0.f,     -1.f, 0.f, 0.f,    0.f, 0.f,  0.f,
+        0.f, 1.f, 1.f,     -1.f, 0.f, 0.f,    1.f, 1.f,  0.f,
+        0.f, 1.f, 0.f,     -1.f, 0.f, 0.f,    0.f, 1.f,  0.f,
 
         // Face 2 (right)
         // Triangle 1
-        0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
-        1.f, 0.f, 1.f,     1.f, 0.f,  0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  0.f,
+        0.f, 0.f, 1.f,     0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
+        1.f, 0.f, 1.f,     0.f, 0.f, 1.f,     1.f, 0.f,  0.f,
+        1.f, 1.f, 1.f,     0.f, 0.f, 1.f,     1.f, 1.f,  0.f,
         // Triangle 2
-        0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  0.f,
-        0.f, 1.f, 1.f,     0.f, 1.f,  0.f,
+        0.f, 0.f, 1.f,     0.f, 0.f, 1.f,     0.f, 0.f,  0.f,
+        1.f, 1.f, 1.f,     0.f, 0.f, 1.f,     1.f, 1.f,  0.f,
+        0.f, 1.f, 1.f,     0.f, 0.f, 1.f,     0.f, 1.f,  0.f,
 
         // Face 3 (back)
         // Triangle 1
-        1.f, 0.f, 1.f,     1.f, 0.f,  0.f,
-        1.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        1.f, 1.f, 0.f,     0.f, 1.f,  0.f,
+        1.f, 0.f, 1.f,     1.f, 0.f, 0.f,     1.f, 0.f,  0.f,
+        1.f, 0.f, 0.f,     1.f, 0.f, 0.f,     0.f, 0.f,  0.f,
+        1.f, 1.f, 0.f,     1.f, 0.f, 0.f,     0.f, 1.f,  0.f,
         // Triangle 2
-        1.f, 0.f, 1.f,     1.f, 0.f,  0.f,
-        1.f, 1.f, 0.f,     0.f, 1.f,  0.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  0.f,
+        1.f, 0.f, 1.f,     1.f, 0.f, 0.f,     1.f, 0.f,  0.f,
+        1.f, 1.f, 0.f,     1.f, 0.f, 0.f,     0.f, 1.f,  0.f,
+        1.f, 1.f, 1.f,     1.f, 0.f, 0.f,     1.f, 1.f,  0.f,
 
         // Face 4 (left)
         // Triangle 1
-        1.f, 0.f, 0.f,     1.f, 0.f,  0.f,
-        0.f, 0.f, 0.f,     0.f, 0.f,  0.f,
-        0.f, 1.f, 0.f,     0.f, 1.f,  0.f,
+        1.f, 0.f, 0.f,     0.f, 0.f, -1.f,    1.f, 0.f,  0.f,
+        0.f, 0.f, 0.f,     0.f, 0.f, -1.f,    0.f, 0.f,  0.f,
+        0.f, 1.f, 0.f,     0.f, 0.f, -1.f,    0.f, 1.f,  0.f,
         // Triangle 2
-        1.f, 0.f, 0.f,     1.f, 0.f,  0.f,
-        0.f, 1.f, 0.f,     0.f, 1.f,  0.f,
-        1.f, 1.f, 0.f,     1.f, 1.f,  0.f,
+        1.f, 0.f, 0.f,     0.f, 0.f, -1.f,    1.f, 0.f,  0.f,
+        0.f, 1.f, 0.f,     0.f, 0.f, -1.f,    0.f, 1.f,  0.f,
+        1.f, 1.f, 0.f,     0.f, 0.f, -1.f,    1.f, 1.f,  0.f,
 
         // Face 5 (top)
         // Triangle 1
-        0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
-        0.f, 1.f, 1.f,     1.f, 0.f,  1.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  1.f,
+        0.f, 1.f, 0.f,     0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
+        0.f, 1.f, 1.f,     0.f, 1.f, 0.f,     1.f, 0.f,  1.f,
+        1.f, 1.f, 1.f,     0.f, 1.f, 0.f,     1.f, 1.f,  1.f,
         // Triangle 2
-        0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
-        1.f, 1.f, 1.f,     1.f, 1.f,  1.f,
-        1.f, 1.f, 0.f,     0.f, 1.f,  1.f,
+        0.f, 1.f, 0.f,     0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
+        1.f, 1.f, 1.f,     0.f, 1.f, 0.f,     1.f, 1.f,  1.f,
+        1.f, 1.f, 0.f,     0.f, 1.f, 0.f,     0.f, 1.f,  1.f,
 
         // Face 6 (bottom)
         // Triangle 1
-        1.f, 0.f, 0.f,     0.f, 1.f,  2.f,
-        1.f, 0.f, 1.f,     1.f, 1.f,  2.f,
-        0.f, 0.f, 1.f,     1.f, 0.f,  2.f,
+        1.f, 0.f, 0.f,     0.f, -1.f, 0.f,    0.f, 1.f,  2.f,
+        1.f, 0.f, 1.f,     0.f, -1.f, 0.f,    1.f, 1.f,  2.f,
+        0.f, 0.f, 1.f,     0.f, -1.f, 0.f,    1.f, 0.f,  2.f,
         // Triangle 2
-        1.f, 0.f, 0.f,     0.f, 1.f,  2.f,
-        0.f, 0.f, 1.f,     1.f, 0.f,  2.f,
-        0.f, 0.f, 0.f,     0.f, 0.f,  2.f
+        1.f, 0.f, 0.f,     0.f, -1.f, 0.f,    0.f, 1.f,  2.f,
+        0.f, 0.f, 1.f,     0.f, -1.f, 0.f,    1.f, 0.f,  2.f,
+        0.f, 0.f, 0.f,     0.f, -1.f, 0.f,    0.f, 0.f,  2.f
     };
 
     return generate_vao(data, sizeof(data));
@@ -177,17 +187,17 @@ GLuint opengl_demo::generate_cube_mirror_vao()
 GLuint opengl_demo::generate_quad_vao()
 {
     float data[] = {
-        // Vertices          // UVs     // Face type (0: side, 1: top, 2: bottom)
+        // Vertices          // Normals         // UVs     // Face type (0: side, 1: top, 2: bottom)
 
         // Face 1 (top)
         // Triangle 1
-        0.f, 0.9375f, 0.f,   0.f, 0.f,  1.f,
-        0.f, 0.9375f, 1.f,   1.f, 0.f,  1.f,
-        1.f, 0.9375f, 1.f,   1.f, 1.f,  1.f,
+        0.f, 0.9375f, 0.f,   0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
+        0.f, 0.9375f, 1.f,   0.f, 1.f, 0.f,     1.f, 0.f,  1.f,
+        1.f, 0.9375f, 1.f,   0.f, 1.f, 0.f,     1.f, 1.f,  1.f,
         // Triangle 2
-        0.f, 0.9375f, 0.f,   0.f, 0.f,  1.f,
-        1.f, 0.9375f, 1.f,   1.f, 1.f,  1.f,
-        1.f, 0.9377f, 0.f,   0.f, 1.f,  1.f
+        0.f, 0.9375f, 0.f,   0.f, 1.f, 0.f,     0.f, 0.f,  1.f,
+        1.f, 0.9375f, 1.f,   0.f, 1.f, 0.f,     1.f, 1.f,  1.f,
+        1.f, 0.9377f, 0.f,   0.f, 1.f, 0.f,     0.f, 1.f,  1.f
     };
 
     return generate_vao(data, sizeof(data));

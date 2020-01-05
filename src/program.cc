@@ -8,6 +8,13 @@
 using namespace opengl_demo;
 
 template <>
+void program::put<glm::vec3>(const char* name, const glm::vec3& val) const
+{
+    glUniform3fv(loc(name), 1, &val[0]);
+    TEST_OPENGL_ERROR();
+}
+
+template <>
 void program::put<glm::vec4>(const char* name, const glm::vec4& val) const
 {
     glUniform4fv(loc(name), 1, &val[0]);

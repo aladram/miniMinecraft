@@ -1,13 +1,23 @@
 #version 330 core
+in vec3 normal_f;
 in vec2 uv_f;
 
 out vec4 color_out;
 
+uniform vec3 dir_light;
 uniform sampler2D tex;
 
 void main()
 {
-    color_out = texture(tex, uv_f);
+    vec3 light = vec3(0);
+    // Ambient light
+    light += vec3(0.5);
+    // Directional light
+    light += max(dot(-dir_light, normal_f) * vec3(0.7), 0);
+
+    light = clamp(light, 0, 1.);
+    color_out = vec4(light, 1.) * texture(tex, uv_f);
+
     if (color_out.a == 0)
         discard;
 }
