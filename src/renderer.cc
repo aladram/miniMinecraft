@@ -42,6 +42,7 @@ static void generate_texture(void *buf, unsigned buf_size)
     stbi_image_free(data);
 }
 
+// From https://www.khronos.org/opengl/wiki/Debug_Output
 void GLAPIENTRY
 message_callback( GLenum source,
                   GLenum type,
@@ -192,6 +193,14 @@ void renderer::render(int width, int height) const
       glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, blocks.size());
     glBindVertexArray(0);
 
+    // Water rendering
+    glBindVertexArray(water_vao);
+      glBindBuffer(GL_ARRAY_BUFFER, water_positions_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * water.size(), water.data(), GL_STATIC_DRAW);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, water.size());
+    glBindVertexArray(0);
+
     // Leaves rendering
     program.put("dir_light_color", vector3(0));
     glBindVertexArray(leaves_vao);
@@ -199,14 +208,5 @@ void renderer::render(int width, int height) const
         glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * leaves.size(), leaves.data(), GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
       glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, leaves.size());
-    glBindVertexArray(0);
-
-    // Water rendering
-    program.put("dir_light_color", vector3(0.7));
-    glBindVertexArray(water_vao);
-      glBindBuffer(GL_ARRAY_BUFFER, water_positions_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * water.size(), water.data(), GL_STATIC_DRAW);
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, water.size());
     glBindVertexArray(0);
 }
