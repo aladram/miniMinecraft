@@ -145,7 +145,9 @@ void renderer::render(int width, int height) const
     glm::mat4 view = camera.look_at();
 
     program.put("view_proj", projection * view);
+    program.put("ambient_light", vector3(0.7));
     program.put("dir_light", - vector3(1.f/2.f, std::sqrt(3.f)/2.f, 0));
+    program.put("dir_light_color", vector3(0.7));
     program.use();
 
     // Blue sky background
@@ -191,6 +193,7 @@ void renderer::render(int width, int height) const
     glBindVertexArray(0);
 
     // Leaves rendering
+    program.put("dir_light_color", vector3(0));
     glBindVertexArray(leaves_vao);
       glBindBuffer(GL_ARRAY_BUFFER, leaves_positions_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * leaves.size(), leaves.data(), GL_STATIC_DRAW);
@@ -199,6 +202,7 @@ void renderer::render(int width, int height) const
     glBindVertexArray(0);
 
     // Water rendering
+    program.put("dir_light_color", vector3(0.7));
     glBindVertexArray(water_vao);
       glBindBuffer(GL_ARRAY_BUFFER, water_positions_vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * water.size(), water.data(), GL_STATIC_DRAW);
