@@ -135,9 +135,9 @@ std::vector<block> world::get_blocks(const vector3i& from, const vector3i& to) c
     std::vector<block> blocks;
     blocks.reserve((to.x - from.x) * (to.y - from.y) * (to.z - from.z));
 
-    for (unsigned x = from.x; x < to.x; ++x)
-        for (unsigned y = from.y; y < to.y; ++y)
-            for (unsigned z = from.z; z < to.z; ++z)
+    for (int x = from.x; x < to.x; ++x)
+        for (int y = from.y; y < to.y; ++y)
+            for (int z = from.z; z < to.z; ++z)
             {
                 const auto& block = get_block({x, y, z});
                 if (block.type != block_type::AIR)
