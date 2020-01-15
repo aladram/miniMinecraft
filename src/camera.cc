@@ -35,25 +35,17 @@ glm::mat4x4 camera::look_at() const
         );
 }
 
-// Raymarching
+// Using Multiple Render Target to fetch target_loc from renderer
 std::optional<block> camera::target_block(const world& world) const
 {
-    static constexpr float min_dist = 0.1f;
     static constexpr float max_dist = 6.f;
-    static constexpr float marching_step = 0.01f;
 
-    for (float dist = min_dist; dist < max_dist; dist += marching_step)
-    {
-        vector3 loc = position + forward_ * dist;
-        // Handle cast of negative float to int
-        if (loc.x < 0)
-            loc.x -= 1;
-        if (loc.z < 0)
-            loc.z -= 1;
-        auto block = world.get_block(loc);
-        if (block.type != block_type::AIR)
-            return block;
-    }
+    if (distance(world.player.position, target_loc) > max_dist)
+        return std::nullopt;
 
-    return std::nullopt;
+    auto block = world.get_block(target_loc);
+    if (block.type == block_type::AIR)
+        return std::nullopt;
+
+    return block;
 }

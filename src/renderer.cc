@@ -15,6 +15,7 @@ extern "C" {
 #include <opengl-demo/my-shaders.hh>
 #include <opengl-demo/program.hh>
 #include <opengl-demo/math.hh>
+#include <opengl-demo/camera.hh>
 #include <opengl-demo/window.hh>
 #include <opengl-demo/vertex_attributes.hh>
 #include <opengl-demo/utils/opengl_utils.hh>
@@ -74,7 +75,7 @@ renderer::renderer(const typename opengl_demo::world& _world)
     glEnable(GL_DEPTH_TEST);
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     program = program_t{compile_my_shaders()};
     program_2 = program_t{compile_my_shaders_2()};
@@ -136,7 +137,7 @@ renderer::renderer(const typename opengl_demo::world& _world)
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderer::render(int width, int height)
+void renderer::render(int width, int height, camera_t& camera)
 {
     assert(width >= 0);
     assert(height >= 0);
@@ -149,7 +150,7 @@ void renderer::render(int width, int height)
         {
             glDeleteFramebuffers(1, &fbo);
             glDeleteRenderbuffers(1, &depth_rbo);
-            GLuint texs[] = { colors_tex /*, positions_tex, normals_tex */ };
+            GLuint texs[] = { colors_tex, positions_tex, normals_tex };
             glDeleteTextures(sizeof(texs) / sizeof(*texs), texs);
         }
 
@@ -170,25 +171,25 @@ void renderer::render(int width, int height)
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colors_tex, 0);
           glBindTexture(GL_TEXTURE_2D, 0);
 
-#if 0
           // Generate positions texture
-          glGenTextures(1, &positions);
-          glBindTexture(GL_TEXTURE_2D, positions);
-          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-          glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, positions, 0);
+          glGenTextures(1, &positions_tex);
+          glBindTexture(GL_TEXTURE_2D, positions_tex);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, positions_tex, 0);
+          glBindTexture(GL_TEXTURE_2D, 0);
 
           // Generate normals texture
-          glGenTextures(1, &normals);
-          glBindTexture(GL_TEXTURE_2D, normals);
-          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-          glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, normals, 0);
-#endif
+          glGenTextures(1, &normals_tex);
+          glBindTexture(GL_TEXTURE_2D, normals_tex);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, normals_tex, 0);
+          glBindTexture(GL_TEXTURE_2D, 0);
 
-          GLuint bufs[] = { GL_COLOR_ATTACHMENT0/*, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2*/ };
+          GLuint bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
           glDrawBuffers(sizeof(bufs) / sizeof(*bufs), bufs);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -216,9 +217,14 @@ void renderer::render(int width, int height)
     // Binding our framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
+    glClear(GL_DEPTH_BUFFER_BIT);
+
     // Blue sky background
-    glClearColor(58.8 / 100., 83.5 / 100., 100. / 100., 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    static constexpr float sky_color[] = { 58.8 / 100., 83.5 / 100., 100. / 100., 1.0f };
+    static constexpr float inf_pos[] = { INFINITY, INFINITY, INFINITY };
+    glClearBufferfv(GL_COLOR, 0, sky_color);
+    glClearBufferfv(GL_COLOR, 1, inf_pos);
+    glClearBufferfv(GL_COLOR, 2, inf_pos);
 
     static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
     std::vector<gl_block> blocks;
@@ -275,17 +281,23 @@ void renderer::render(int width, int height)
       glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, leaves.size());
     glBindVertexArray(0);
 
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+    vector3 loc;
+    glReadPixels(width / 2, height / 2, 1, 1, GL_RGB, GL_FLOAT, (GLvoid*)&loc);
+    if (loc.x != INFINITY && loc.y != INFINITY && loc.z != INFINITY)
+        camera.target_loc = loc;
+
+    glReadBuffer(GL_COLOR_ATTACHMENT2);
+    vector3 normal;
+    glReadPixels(width / 2, height / 2, 1, 1, GL_RGB, GL_FLOAT, (GLvoid*)&normal);
+    if (normal.x != INFINITY && normal.y != INFINITY && normal.z != INFINITY)
+        camera.target_normal = normal;
+
     // Binding default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colors_tex);
-#if 0
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, positions_tex);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normals_tex);
-#endif
 
     program_2.use();
     program_2.put("tex", 0);

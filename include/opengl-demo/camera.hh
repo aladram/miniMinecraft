@@ -13,6 +13,8 @@ namespace opengl_demo
         vector3 position;
         vector3 forward_;
         vector3 up_;
+        vector3 target_loc;
+        vector3 target_normal;
 
         vector3 forward() const;
         vector3 up() const;

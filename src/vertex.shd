@@ -6,7 +6,8 @@ layout (location = 3) in float face_type;
 layout (location = 4) in vec3 off;
 layout (location = 5) in vec3 tex_ids;
 
-out vec3 normal_f;
+flat out vec3 position_f;
+flat out vec3 normal_f;
 out vec2 uv_f;
 
 uniform mat4 view_proj;
@@ -15,6 +16,7 @@ void main()
 {
     gl_Position = view_proj * (vec4(pos, 1.) + vec4(off, 0));
 
+    position_f = off;
     normal_f = normal;
 
     float tex_id = tex_ids[uint(face_type)];

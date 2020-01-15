@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 
 #include <opengl-demo/program.hh>
+#include <opengl-demo/camera.hh>
 #include <opengl-demo/world/world.hh>
 
 namespace opengl_demo {
@@ -10,12 +11,15 @@ namespace opengl_demo {
     {
 public:
         renderer(const world& _world);
-        void render(int width, int height);
+        void render(int width, int height, camera_t& camera);
 
 private:
+        // Classic class members
         const world_t& world;
         int width_ = -1;
         int height_ = -1;
+
+        // OpenGL class members
         program_t program;
         program_t program_2;
         GLuint world_vao;

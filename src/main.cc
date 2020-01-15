@@ -59,7 +59,7 @@ int main()
         int width, height;
         glfwGetWindowSize(window, &width, &height);
 
-        renderer.render(width, height);
+        renderer.render(width, height, camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
