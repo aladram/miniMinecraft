@@ -3,6 +3,7 @@
 extern "C" {
 #include <err.h>
 }
+#include <cassert>
 #include <cstdio>
 
 #include <glad/glad.h>
@@ -27,7 +28,7 @@ using namespace opengl_demo;
 extern unsigned char terrain_png_buf[0];
 extern unsigned int terrain_png_buf_len;
 
-static void generate_texture(void *buf, unsigned buf_size)
+static void game_texture(void *buf, unsigned buf_size)
 {
     int width, height, nrChannels;
 
@@ -76,12 +77,14 @@ renderer::renderer(const typename opengl_demo::world& _world)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     program = program_t{compile_my_shaders()};
+    program_2 = program_t{compile_my_shaders_2()};
     program.use();
 
     // Generate single block VAOs
     world_vao = generate_cube_vao();
     leaves_vao = generate_cube_mirror_vao();
     water_vao = generate_quad_vao();
+    screen_vao = generate_screen_vao();
 
     // Generate block positions VBO for world VAO
     glGenBuffers(1, &positions_vbo);
@@ -129,12 +132,70 @@ renderer::renderer(const typename opengl_demo::world& _world)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      generate_texture(terrain_png_buf, terrain_png_buf_len);
+      game_texture(terrain_png_buf, terrain_png_buf_len);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderer::render(int width, int height) const
+void renderer::render(int width, int height)
 {
+    assert(width >= 0);
+    assert(height >= 0);
+
+    // Regenerate framebuffer if width or height has changed
+    if (width != width_ || height != height_)
+    {
+        // Delete previous buffers if existing
+        if (width_ != -1)
+        {
+            glDeleteFramebuffers(1, &fbo);
+            glDeleteRenderbuffers(1, &depth_rbo);
+            GLuint texs[] = { colors_tex /*, positions_tex, normals_tex */ };
+            glDeleteTextures(sizeof(texs) / sizeof(*texs), texs);
+        }
+
+        glGenFramebuffers(1, &fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+          glGenRenderbuffers(1, &depth_rbo);
+          glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
+          glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+          // Generate colors texture
+          glGenTextures(1, &colors_tex);
+          glBindTexture(GL_TEXTURE_2D, colors_tex);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colors_tex, 0);
+          glBindTexture(GL_TEXTURE_2D, 0);
+
+#if 0
+          // Generate positions texture
+          glGenTextures(1, &positions);
+          glBindTexture(GL_TEXTURE_2D, positions);
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+          glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, positions, 0);
+
+          // Generate normals texture
+          glGenTextures(1, &normals);
+          glBindTexture(GL_TEXTURE_2D, normals);
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+          glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, normals, 0);
+#endif
+
+          GLuint bufs[] = { GL_COLOR_ATTACHMENT0/*, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2*/ };
+          glDrawBuffers(sizeof(bufs) / sizeof(*bufs), bufs);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        width_ = width;
+        height_ = height;
+   }
+
     glm::mat4 projection = glm::perspective(
             // FOV
             glm::radians(70.f),
@@ -145,11 +206,15 @@ void renderer::render(int width, int height) const
         );
     glm::mat4 view = camera.look_at();
 
+    program.use();
     program.put("view_proj", projection * view);
     program.put("ambient_light", vector3(0.7));
     program.put("dir_light", - vector3(1.f/2.f, std::sqrt(3.f)/2.f, 0));
     program.put("dir_light_color", vector3(0.7));
-    program.use();
+    program.put("tex", 0);
+
+    // Binding our framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     // Blue sky background
     glClearColor(58.8 / 100., 83.5 / 100., 100. / 100., 1.0f);
@@ -208,5 +273,28 @@ void renderer::render(int width, int height) const
         glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * leaves.size(), leaves.data(), GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
       glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, leaves.size());
+    glBindVertexArray(0);
+
+    // Binding default framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, colors_tex);
+#if 0
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, positions_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normals_tex);
+#endif
+
+    program_2.use();
+    program_2.put("tex", 0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindTexture(GL_TEXTURE_2D, colors_tex);
+
+    glBindVertexArray(screen_vao);
+      glDrawArrays(GL_TRIANGLES, 0, 2 * 3);
     glBindVertexArray(0);
 }

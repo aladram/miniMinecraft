@@ -13,6 +13,12 @@ add_custom_command(OUTPUT vertex_shader.c
 add_custom_command(OUTPUT fragment_shader.c
 		DEPENDS ${CMAKE_SOURCE_DIR}/src/fragment.shd
 		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/fragment.shd fragment_shader.c)
+add_custom_command(OUTPUT vertex_2_shader.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/src/vertex_2.shd
+		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/vertex_2.shd vertex_2_shader.c)
+add_custom_command(OUTPUT fragment_2_shader.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/src/fragment_2.shd
+		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/fragment_2.shd fragment_2_shader.c)
 add_custom_command(OUTPUT terrain_png.c
 		DEPENDS ${CMAKE_SOURCE_DIR}/res/terrain.png
 		COMMAND ${CMAKE_SOURCE_DIR}/export_file.sh ${CMAKE_SOURCE_DIR}/res/terrain.png terrain_png.c)
@@ -20,6 +26,8 @@ add_custom_command(OUTPUT terrain_png.c
 add_executable(${BIN_NAME}
 		vertex_shader.c
 		fragment_shader.c
+		vertex_2_shader.c
+		fragment_2_shader.c
 		terrain_png.c
 		src/main.cc
 		src/my-shaders.cc
@@ -38,7 +46,7 @@ add_executable(${BIN_NAME}
         )
 
 target_include_directories(${BIN_NAME} PRIVATE "include/")
-target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=3 OPENGL_VERSION_MINOR=3)
+target_compile_definitions(${BIN_NAME} PRIVATE OPENGL_VERSION_MAJOR=4 OPENGL_VERSION_MINOR=5)
 target_compile_options(${BIN_NAME} PRIVATE -Wall -Wextra -Ofast -march=native)
 
 # OpenMP

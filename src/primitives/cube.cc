@@ -202,3 +202,34 @@ GLuint opengl_demo::generate_quad_vao()
 
     return generate_vao(data, sizeof(data));
 }
+
+GLuint opengl_demo::generate_screen_vao()
+{
+    float data[] = {
+        // Vertices          // UVs
+        // Triangle 1
+        -1.f, -1.f, 0.f,     0.f, 0.f,
+        -1.f, 1.f,  0.f,     0.f, 1.f,
+        1.f,  1.f,  0.f,     1.f, 1.f,
+        // Triangle 2                 
+        -1.f, -1.f, 0.f,     0.f, 0.f,
+        1.f,  1.f,  0.f,     1.f, 1.f,
+        1.f,  -1.f, 0.f,     1.f, 0.f,
+    };
+
+    GLuint my_vao, my_vbo;
+    glGenVertexArrays(1, &my_vao);
+    glGenBuffers(1, &my_vbo);
+
+    glBindVertexArray(my_vao);
+      glBindBuffer(GL_ARRAY_BUFFER, my_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, NULL);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 3));
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    return my_vao;
+}
