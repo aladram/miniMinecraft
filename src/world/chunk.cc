@@ -23,6 +23,10 @@ static size_t index(const vector3i& loc)
 
 chunk::chunk(const vector3i& loc)
 {
+    // Reserve cache
+    for (auto& gl_blocks: gl_cache)
+        gl_blocks.reserve(N * N * N);
+
     vector3i base_loc = loc * (int)N;
 
     for (size_t x = 0; x < N; ++x)
@@ -46,4 +50,17 @@ void chunk::set_block(const vector3i& loc, const block& block)
     std::unique_lock<std::shared_mutex> lock(*mutex);
 
     blocks[index(loc)] = block;
+
+    // Flush cache
+    for (auto& gl_blocks: gl_cache)
+        gl_blocks.clear();
+}
+
+bool chunk::is_cached() const
+{
+    for (auto& gl_blocks: gl_cache)
+        if (!gl_blocks.empty())
+            return true;
+
+    return false;
 }

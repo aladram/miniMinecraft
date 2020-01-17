@@ -62,7 +62,7 @@ message_callback( GLenum source,
             type, severity, message );
 }
 
-renderer::renderer(const typename opengl_demo::world& _world)
+renderer::renderer(world_t& _world)
     : world{_world}
 {
 #if !defined(NDEBUG) && OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MINOR >= 3
@@ -195,27 +195,35 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     std::vector<gl_block> blocks;
     std::vector<gl_block> leaves;
     std::vector<gl_block> water;
-    for (const auto& chunk: world.chunks)
+    for (auto& chunk_pair: world.chunks)
     {
         // Skip chunk if too far
-        vector3 loc = chunk.first * (int)chunk_t::N;
+        vector3 loc = chunk_pair.first * (int)chunk_t::N;
         if (glm::distance(loc, world.player.eyes_position()) > max_render_distance)
             continue;
 
-        // Add blocks to VBO
-        for (const auto& block: chunk.second.blocks)
-        {
-            if (block.type == block_type::WATER)
+        auto& chunk = chunk_pair.second;
+
+        // Regenerate chunk GL blocks cache if empty
+        if (!chunk.is_cached())
+            for (const auto& block: chunk.blocks)
             {
-                // Render only if air on top
-                if (world.get_block(block.position + vector3(0, 1, 0)).type == block_type::AIR)
-                    water.push_back(block.to_opengl());
+                if (block.type == block_type::WATER)
+                {
+                    // Render only if air on top
+                    if (world.get_block(block.position + vector3(0, 1, 0)).type == block_type::AIR)
+                        chunk.gl_cache[2].push_back(block.to_opengl());
+                }
+                else if (block.type == block_type::LEAVES)
+                    chunk.gl_cache[1].push_back(block.to_opengl());
+                else if (block.visible)
+                    chunk.gl_cache[0].push_back(block.to_opengl());
             }
-            else if (block.type == block_type::LEAVES)
-                leaves.push_back(block.to_opengl());
-            else if (block.visible)
-                blocks.push_back(block.to_opengl());
-        }
+
+        // Add blocks to VBO
+        blocks.insert(blocks.end(), chunk.gl_cache[0].begin(), chunk.gl_cache[0].end());
+        leaves.insert(leaves.end(), chunk.gl_cache[1].begin(), chunk.gl_cache[1].end());
+        water.insert(water.end(), chunk.gl_cache[2].begin(), chunk.gl_cache[2].end());
     }
 
     // Texture binding

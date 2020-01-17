@@ -11,13 +11,13 @@ namespace opengl_demo {
     class renderer
     {
 public:
-        renderer(const world& _world);
+        renderer(world_t& _world);
         void resize_framebuffer(bool regenerate);
         void render(int new_width, int new_height, camera_t& camera);
 
 private:
         // Classic class members
-        const world_t& world;
+        world_t& world;
         int width = -1;
         int height = -1;
 
