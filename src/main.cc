@@ -7,9 +7,9 @@ extern "C" {
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <opengl-demo/renderer.hh>
 #include <opengl-demo/window.hh>
 #include <opengl-demo/math.hh>
+#include <opengl-demo/rendering/renderer.hh>
 #include <opengl-demo/world/generator.hh>
 #include <opengl-demo/world/world.hh>
 

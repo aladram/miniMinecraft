@@ -38,11 +38,12 @@ add_executable(${BIN_NAME}
 		src/world/world.cc
 		src/world/entity.cc
 		src/world/aabb.cc
-		src/renderer.cc
+		src/rendering/renderer.cc
 		src/world/chunk.cc
 		src/world/block.cc
 		src/world/generator.cc
 		src/program.cc
+		src/rendering/block-renderer.cc
         )
 
 target_include_directories(${BIN_NAME} PRIVATE "include/")

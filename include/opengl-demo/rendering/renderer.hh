@@ -4,6 +4,7 @@
 
 #include <opengl-demo/program.hh>
 #include <opengl-demo/camera.hh>
+#include <opengl-demo/rendering/block-renderer.hh>
 #include <opengl-demo/world/world.hh>
 
 namespace opengl_demo {
@@ -11,24 +12,22 @@ namespace opengl_demo {
     {
 public:
         renderer(const world& _world);
-        void render(int width, int height, camera_t& camera);
+        void resize_framebuffer(bool regenerate);
+        void render(int new_width, int new_height, camera_t& camera);
 
 private:
         // Classic class members
         const world_t& world;
-        int width_ = -1;
-        int height_ = -1;
+        int width = -1;
+        int height = -1;
 
         // OpenGL class members
         program_t program;
         program_t program_2;
-        GLuint world_vao;
-        GLuint leaves_vao;
-        GLuint water_vao;
+        block_renderer_t world_renderer;
+        block_renderer_t leaves_renderer;
+        block_renderer_t water_renderer;
         GLuint screen_vao;
-        GLuint positions_vbo;
-        GLuint leaves_positions_vbo;
-        GLuint water_positions_vbo;
         GLuint texture;
         GLuint fbo;
         GLuint depth_rbo;
