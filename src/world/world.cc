@@ -25,10 +25,7 @@ chunk& world::get_chunk(const vector3i& loc)
     auto chunk_it = chunks.find(loc);
     // Create new chunk if it does not exist
     if (chunk_it == chunks.end())
-    {
-        chunks.insert({loc, chunk_t(loc)});
-        chunk_it = chunks.find(loc);
-    }
+        chunk_it = chunks.insert({loc, chunk_t(loc)}).first;
 
     return chunk_it->second;
 }
