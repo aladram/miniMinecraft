@@ -286,12 +286,16 @@ void renderer::render(int width, int height, camera_t& camera)
     glReadPixels(width / 2, height / 2, 1, 1, GL_RGB, GL_FLOAT, (GLvoid*)&loc);
     if (loc.x != INFINITY && loc.y != INFINITY && loc.z != INFINITY)
         camera.target_loc = loc;
+    else
+        camera.target_loc = std::nullopt;
 
     glReadBuffer(GL_COLOR_ATTACHMENT2);
     vector3 normal;
     glReadPixels(width / 2, height / 2, 1, 1, GL_RGB, GL_FLOAT, (GLvoid*)&normal);
     if (normal.x != INFINITY && normal.y != INFINITY && normal.z != INFINITY)
         camera.target_normal = normal;
+    else
+        camera.target_loc = std::nullopt;
 
     // Binding default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

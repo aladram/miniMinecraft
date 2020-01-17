@@ -21,6 +21,19 @@ static size_t index(const vector3i& loc)
     return (size_t) (loc.x * (N * N) + loc.y * N + loc.z);
 }
 
+chunk::chunk(const vector3i& loc)
+{
+    vector3i base_loc = loc * (int)N;
+
+    for (size_t x = 0; x < N; ++x)
+        for (size_t y = 0; y < N; ++y)
+            for (size_t z = 0; z < N; ++z)
+            {
+                vector3i off = vector3i(x, y, z);
+                blocks[index(off)] = block_t{base_loc + off, block_type::AIR};
+            }
+}
+
 block chunk::get_block(const vector3i& loc) const
 {
     std::unique_lock<std::shared_mutex> lock(*mutex);

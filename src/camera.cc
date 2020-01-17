@@ -11,6 +11,8 @@
 
 using namespace opengl_demo;
 
+static constexpr float max_dist = 6.f;
+
 vector3 camera::forward() const
 {
     return glm::normalize(forward_);
@@ -38,14 +40,26 @@ glm::mat4x4 camera::look_at() const
 // Using Multiple Render Target to fetch target_loc from renderer
 std::optional<block> camera::target_block(const world& world) const
 {
-    static constexpr float max_dist = 6.f;
-
-    if (distance(world.player.position, target_loc) > max_dist)
+    if (!target_loc)
+        return std::nullopt;
+    if (distance(world.player.position, *target_loc) > max_dist)
         return std::nullopt;
 
-    auto block = world.get_block(target_loc);
+    auto block = world.get_block(*target_loc);
     if (block.type == block_type::AIR)
         return std::nullopt;
 
     return block;
+}
+
+std::optional<vector3> camera::target_free_loc(const world& world) const
+{
+    if (!target_loc || !target_normal)
+        return std::nullopt;
+
+    vector3 loc = *target_loc + *target_normal;
+    if (distance(world.player.position, loc) > max_dist)
+        return std::nullopt;
+
+    return loc;
 }

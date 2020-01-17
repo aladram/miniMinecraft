@@ -23,6 +23,7 @@ camera_t opengl_demo::camera{
 
 static world_t* world_ptr;
 static bool left_click;
+static bool right_click;
 
 void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
 {
@@ -86,6 +87,21 @@ void opengl_demo::process_input(GLFWwindow* window, world& world, float dt)
     else
         lastBreak += dt;
 
+    // Check right click
+    if (right_click && lastBreak > breakDelay)
+    {
+        lastBreak = 0;
+        auto pos = camera.target_free_loc(world);
+        if (pos)
+        {
+            auto block = world.get_block(*pos);
+            if (!block.hitbox().intersects(world.player.hitbox()))
+                world.set_block(*pos, block_type::STONE);
+        }
+    }
+    else
+        lastBreak += dt;
+
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -129,6 +145,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
     if (button == GLFW_MOUSE_BUTTON_LEFT)
         left_click = (action == GLFW_PRESS);
+    if (button == GLFW_MOUSE_BUTTON_RIGHT)
+        right_click = (action == GLFW_PRESS);
 }
 
 void glfw_error_callback(int, const char *description)
