@@ -65,6 +65,10 @@ message_callback( GLenum source,
 renderer::renderer(world_t& _world)
     : world{_world}
 {
+    gl_blocks.reserve(256 * 256 * 128);
+    gl_leaves.reserve(256 * 256 * 128);
+    gl_water.reserve(256 * 256 * 128);
+
 #if !defined(NDEBUG) && OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MINOR >= 3
     // Enable debug output
     glEnable(GL_DEBUG_OUTPUT);
@@ -192,9 +196,9 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     glClearBufferfv(GL_COLOR, 2, inf_pos);
 
     static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
-    std::vector<gl_block> blocks;
-    std::vector<gl_block> leaves;
-    std::vector<gl_block> water;
+    gl_blocks.clear();
+    gl_leaves.clear();
+    gl_water.clear();
     for (auto& chunk_pair: world.chunks)
     {
         // Skip chunk if too far
@@ -221,17 +225,17 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
             }
 
         // Add blocks to VBO
-        blocks.insert(blocks.end(), chunk.gl_cache[0].begin(), chunk.gl_cache[0].end());
-        leaves.insert(leaves.end(), chunk.gl_cache[1].begin(), chunk.gl_cache[1].end());
-        water.insert(water.end(), chunk.gl_cache[2].begin(), chunk.gl_cache[2].end());
+        gl_blocks.insert(gl_blocks.end(), chunk.gl_cache[0].begin(), chunk.gl_cache[0].end());
+        gl_leaves.insert(gl_leaves.end(), chunk.gl_cache[1].begin(), chunk.gl_cache[1].end());
+        gl_water.insert(gl_water.end(), chunk.gl_cache[2].begin(), chunk.gl_cache[2].end());
     }
 
     // Texture binding
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    world_renderer.render(blocks);
-    leaves_renderer.render(leaves);
-    water_renderer.render(water);
+    world_renderer.render(gl_blocks);
+    leaves_renderer.render(gl_leaves);
+    water_renderer.render(gl_water);
 
     glReadBuffer(GL_COLOR_ATTACHMENT1);
     vector3 loc;

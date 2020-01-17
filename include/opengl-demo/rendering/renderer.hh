@@ -22,6 +22,9 @@ private:
         int height = -1;
 
         // OpenGL class members
+        std::vector<gl_block> gl_blocks;
+        std::vector<gl_block> gl_leaves;
+        std::vector<gl_block> gl_water;
         program_t program;
         program_t program_2;
         block_renderer_t world_renderer;
