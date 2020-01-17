@@ -36,14 +36,14 @@ chunk::chunk(const vector3i& loc)
 
 block chunk::get_block(const vector3i& loc) const
 {
-    std::unique_lock<std::shared_mutex> lock(*mutex);
+    std::shared_lock<std::shared_mutex> lock(*mutex);
 
     return blocks[index(loc)];
 }
 
 void chunk::set_block(const vector3i& loc, const block& block)
 {
-    std::shared_lock<std::shared_mutex> lock(*mutex);
+    std::unique_lock<std::shared_mutex> lock(*mutex);
 
     blocks[index(loc)] = block;
 }
