@@ -163,7 +163,7 @@ world opengl_demo::generate_world()
                 world.set_block_unsafe({ x, 0, z }, block_type::BEDROCK);
                 for (int y = 1; y < stone_height; ++y)
                     world.set_block_unsafe({ x, y, z }, block_type::STONE);
-                for (int y = stone_height; y < height - 1; ++y)
+                for (int y = stone_height; y < height; ++y)
                     world.set_block_unsafe({ x, y, z }, block_type::DIRT);
             }
     }
