@@ -6,4 +6,5 @@ namespace opengl_demo
 {
     GLuint compile_my_shaders();
     GLuint compile_my_shaders_2();
+    GLuint compile_my_shaders_3();
 }

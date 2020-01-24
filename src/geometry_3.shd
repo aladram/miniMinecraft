@@ -1,0 +1,50 @@
+#version 330 core
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 102) out;
+
+flat in vec3 position_g[];
+flat in vec3 normal_g[];
+in vec2 uv_g[];
+
+flat out vec3 position_f;
+flat out vec3 normal_f;
+out vec2 uv_f;
+
+uniform mat4 view_proj;
+
+void main()
+{
+    vec3 offsets[17];
+    offsets[0] = vec3(0.0, 0.0, 0.0);
+    offsets[1] = vec3(1.0, 0.0, 0.0);
+    offsets[2] = vec3(sqrt(3.0)/2.0, 0.0, 1.0/2.0);
+    offsets[3] = vec3(sqrt(2.0)/2.0, 0.0, sqrt(2.0)/2.0);
+    offsets[4] = vec3(1.0/2.0, 0, sqrt(3.0)/2.0);
+    offsets[5] = vec3(0.0, 0.0, 1.0);
+    offsets[6] = vec3(-1.0/2.0, 0.0, sqrt(3.0)/2.0);
+    offsets[7] = vec3(-sqrt(2.0)/2.0, 0.0, sqrt(2.0)/2.0);
+    offsets[8] = vec3(-sqrt(3.0)/2.0, 0.0, 1.0/2.0);
+    offsets[9] = vec3(-1.0, 0.0, 0.0);
+    offsets[10] = vec3(-sqrt(3.0)/2.0, 0.0, -1.0/2.0);
+    offsets[11] = vec3(-sqrt(2.0)/2.0, 0.0, -sqrt(2.0)/2.0);
+    offsets[12] = vec3(-1.0/2.0, 0.0, -sqrt(3.0)/2.0);
+    offsets[13] = vec3(0.0, 0.0, -1.0);
+    offsets[14] = vec3(1.0/2.0, 0.0, -sqrt(3.0)/2.0);
+    offsets[15] = vec3(sqrt(2.0)/2.0, 0.0, -sqrt(2.0)/2.0);
+    offsets[16] = vec3(sqrt(3.0)/2.0, 0.0, -1.0/2.0);
+    for (int j = 0; j < 17; ++j)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            gl_Position = gl_in[i].gl_Position + view_proj * vec4(0.1 * offsets[j], 0);
+
+            position_f = position_g[i];
+            normal_f = normal_g[i];
+            uv_f = uv_g[i];
+
+            EmitVertex();
+        }
+        EndPrimitive();
+    }
+}

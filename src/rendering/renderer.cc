@@ -82,11 +82,13 @@ renderer::renderer(world_t& _world)
 
     program = program_t{compile_my_shaders()};
     program_2 = program_t{compile_my_shaders_2()};
+    program_3 = program_t{compile_my_shaders_3()};
     program.use();
 
     world_renderer = block_renderer_t(generate_cube_vao());
     leaves_renderer = block_renderer_t(generate_cube_mirror_vao());
     water_renderer = block_renderer_t(generate_quad_vao());
+    log_renderer = block_renderer_t(generate_cube_vao());
     screen_vao = generate_screen_vao();
 
     // Texture loading
@@ -199,6 +201,7 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     gl_blocks.clear();
     gl_leaves.clear();
     gl_water.clear();
+    gl_log.clear();
     for (auto& chunk_pair: world.chunks)
     {
         // Skip chunk if too far
@@ -220,6 +223,8 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
                 }
                 else if (block.type == block_type::LEAVES)
                     chunk.gl_cache[1].push_back(block.to_opengl());
+                else if (block.type == block_type::LOG)
+                    chunk.gl_cache[3].push_back(block.to_opengl());
                 else if (block.visible)
                     chunk.gl_cache[0].push_back(block.to_opengl());
             }
@@ -228,6 +233,7 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
         gl_blocks.insert(gl_blocks.end(), chunk.gl_cache[0].begin(), chunk.gl_cache[0].end());
         gl_leaves.insert(gl_leaves.end(), chunk.gl_cache[1].begin(), chunk.gl_cache[1].end());
         gl_water.insert(gl_water.end(), chunk.gl_cache[2].begin(), chunk.gl_cache[2].end());
+        gl_log.insert(gl_log.end(), chunk.gl_cache[3].begin(), chunk.gl_cache[3].end());
     }
 
     // Texture binding
@@ -236,6 +242,14 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     world_renderer.render(gl_blocks);
     leaves_renderer.render(gl_leaves);
     water_renderer.render(gl_water);
+
+    program_3.use();
+    program_3.put("view_proj", projection * view);
+    program_3.put("ambient_light", vector3(0.7));
+    program_3.put("dir_light", - vector3(1.f/2.f, std::sqrt(3.f)/2.f, 0));
+    program_3.put("dir_light_color", vector3(0.7));
+    program_3.put("tex", 0);
+    log_renderer.render(gl_log);
 
     glReadBuffer(GL_COLOR_ATTACHMENT1);
     vector3 loc;

@@ -1,0 +1,31 @@
+#version 330 core
+flat in vec3 position_f;
+flat in vec3 normal_f;
+in vec2 uv_f;
+
+layout (location = 0) out vec4 color_out;
+layout (location = 1) out vec3 position_out;
+layout (location = 2) out vec3 normal_out;
+
+uniform vec3 ambient_light;
+uniform vec3 dir_light;
+uniform vec3 dir_light_color;
+uniform sampler2D tex;
+
+void main()
+{
+    vec3 light = vec3(0);
+    // Ambient light
+    light += ambient_light;
+    // Directional light
+    light += max(dot(-dir_light, normal_f) * dir_light_color, 0);
+
+    light = clamp(light, 0, 1.);
+    color_out = vec4(light, 1.) * texture(tex, uv_f);
+
+    position_out = position_f;
+    normal_out = normal_f;
+
+    if (color_out.a == 0)
+        discard;
+}

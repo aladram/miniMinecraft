@@ -1,0 +1,26 @@
+#version 330 core
+layout (location = 0) in vec3 pos;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec2 uv;
+layout (location = 3) in float face_type;
+layout (location = 4) in vec3 off;
+layout (location = 5) in vec3 tex_ids;
+
+flat out vec3 position_g;
+flat out vec3 normal_g;
+out vec2 uv_g;
+
+uniform mat4 view_proj;
+
+void main()
+{
+    vec3 pos2 = vec3(0.1, 0, 0.8) + pos * vec3(0.8, 1, 0.8) + off;
+    gl_Position = view_proj * vec4(pos2, 1.);
+
+    position_g = off;
+    normal_g = normal;
+
+    float tex_id = tex_ids[uint(face_type)];
+    vec2 tex_coords = vec2(mod(tex_id, 16.), (15. - (tex_id - mod(tex_id, 16.)) / 16.));
+    uv_g = tex_coords / 16. + uv / 16.;
+}

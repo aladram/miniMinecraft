@@ -1,9 +1,11 @@
+#include <opengl-demo/utils/shaders.hh>
+
+#include <cassert>
 #include <stdexcept>
 #include <utility>
 #include <glad/glad.h>
 
 #include <opengl-demo/utils/opengl_utils.hh>
-#include <opengl-demo/utils/shaders.hh>
 
 template <auto F1, auto F2>
 static std::string generic_error(GLint id)
@@ -48,19 +50,32 @@ static auto compile_shader(const char* shader_src, GLenum shader_type)
     return id;
 }
 
-GLuint opengl_demo::compile_shaders(const char* vertex_shader_src, const char* fragment_shader_src)
+GLuint opengl_demo::compile_shaders(
+        const char* vertex_shader_src,
+        const char* geometry_shader_src,
+        const char* fragment_shader_src
+    )
 {
-    auto v_id = compile_shader(vertex_shader_src, GL_VERTEX_SHADER);
-    auto f_id = compile_shader(fragment_shader_src, GL_FRAGMENT_SHADER);
+    assert(vertex_shader_src);
+    assert(fragment_shader_src);
 
     auto p_id = glCreateProgram();
     TEST_OPENGL_ERROR();
     if (!p_id)
         throw std::runtime_error("glCreateProgram failed");
 
+    auto v_id = compile_shader(vertex_shader_src, GL_VERTEX_SHADER);
     glAttachShader(p_id, v_id);
     TEST_OPENGL_ERROR();
 
+    if (geometry_shader_src)
+    {
+        auto g_id = compile_shader(geometry_shader_src, GL_GEOMETRY_SHADER);
+        glAttachShader(p_id, g_id);
+        TEST_OPENGL_ERROR();
+    }
+
+    auto f_id = compile_shader(fragment_shader_src, GL_FRAGMENT_SHADER);
     glAttachShader(p_id, f_id);
     TEST_OPENGL_ERROR();
 

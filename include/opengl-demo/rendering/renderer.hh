@@ -25,11 +25,14 @@ private:
         std::vector<gl_block> gl_blocks;
         std::vector<gl_block> gl_leaves;
         std::vector<gl_block> gl_water;
+        std::vector<gl_block> gl_log;
         program_t program;
         program_t program_2;
+        program_t program_3;
         block_renderer_t world_renderer;
         block_renderer_t leaves_renderer;
         block_renderer_t water_renderer;
+        block_renderer_t log_renderer;
         GLuint screen_vao;
         GLuint texture;
         GLuint fbo;

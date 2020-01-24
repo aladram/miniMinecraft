@@ -19,6 +19,15 @@ add_custom_command(OUTPUT vertex_2_shader.c
 add_custom_command(OUTPUT fragment_2_shader.c
 		DEPENDS ${CMAKE_SOURCE_DIR}/src/fragment_2.shd
 		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/fragment_2.shd fragment_2_shader.c)
+add_custom_command(OUTPUT vertex_3_shader.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/src/vertex_3.shd
+		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/vertex_3.shd vertex_3_shader.c)
+add_custom_command(OUTPUT geometry_3_shader.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/src/geometry_3.shd
+		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/geometry_3.shd geometry_3_shader.c)
+add_custom_command(OUTPUT fragment_3_shader.c
+		DEPENDS ${CMAKE_SOURCE_DIR}/src/fragment_3.shd
+		COMMAND ${CMAKE_SOURCE_DIR}/compile_shader.sh ${CMAKE_SOURCE_DIR}/src/fragment_3.shd fragment_3_shader.c)
 add_custom_command(OUTPUT terrain_png.c
 		DEPENDS ${CMAKE_SOURCE_DIR}/res/terrain.png
 		COMMAND ${CMAKE_SOURCE_DIR}/export_file.sh ${CMAKE_SOURCE_DIR}/res/terrain.png terrain_png.c)
@@ -28,6 +37,9 @@ add_executable(${BIN_NAME}
 		fragment_shader.c
 		vertex_2_shader.c
 		fragment_2_shader.c
+		vertex_3_shader.c
+		geometry_3_shader.c
+		fragment_3_shader.c
 		terrain_png.c
 		src/main.cc
 		src/my-shaders.cc
