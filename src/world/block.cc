@@ -18,7 +18,8 @@ bool block::opaque() const
     static const std::unordered_set<block_type> transparent_blocks = {
         block_type::AIR,
         block_type::WATER,
-        block_type::LEAVES
+        block_type::LEAVES,
+        block_type::LOG
     };
 
     // Returns true if not in transparent blocks set

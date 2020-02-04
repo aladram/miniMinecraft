@@ -14,7 +14,7 @@ uniform mat4 view_proj;
 
 void main()
 {
-    vec3 pos2 = vec3(0.1, 0, 0.8) + pos * vec3(0.8, 1, 0.8) + off;
+    vec3 pos2 = vec3(0.1, 0, 0.1) + pos * vec3(0.8, 1, 0.8) + off;
     gl_Position = view_proj * vec4(pos2, 1.);
 
     position_g = off;
