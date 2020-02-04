@@ -64,7 +64,7 @@ gl_block block::to_opengl() const
     return gl_block{
         position,
 #ifdef NDEBUG
-        textures_ids[type]
+        textures_ids.find(type)->second
 #else
         textures_ids.at(type)
 #endif
