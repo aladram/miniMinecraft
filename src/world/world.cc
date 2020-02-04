@@ -76,6 +76,7 @@ void world::set_block(const vector3i& loc, const block& block)
 {
     set_block_unsafe(loc, block);
 
+    cached = false;
     update_visibility(loc);
 }
 

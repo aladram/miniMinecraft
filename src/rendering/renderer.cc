@@ -198,42 +198,47 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     glClearBufferfv(GL_COLOR, 2, inf_pos);
 
     static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
-    gl_blocks.clear();
-    gl_leaves.clear();
-    gl_water.clear();
-    gl_log.clear();
-    for (auto& chunk_pair: world.chunks)
+    if (!world.cached)
     {
-        // Skip chunk if too far
-        vector3 loc = chunk_pair.first * (int)chunk_t::N;
-        if (glm::distance(loc, world.player.eyes_position()) > max_render_distance)
-            continue;
+        gl_blocks.clear();
+        gl_leaves.clear();
+        gl_water.clear();
+        gl_log.clear();
+        for (auto& chunk_pair: world.chunks)
+        {
+            // Skip chunk if too far
+            vector3 loc = chunk_pair.first * (int)chunk_t::N;
+            if (glm::distance(loc, world.player.eyes_position()) > max_render_distance)
+                continue;
 
-        auto& chunk = chunk_pair.second;
+            auto& chunk = chunk_pair.second;
 
-        // Regenerate chunk GL blocks cache if empty
-        if (!chunk.is_cached())
-            for (const auto& block: chunk.blocks)
-            {
-                if (block.type == block_type::WATER)
+            // Regenerate chunk GL blocks cache if empty
+            if (!chunk.is_cached())
+                for (const auto& block: chunk.blocks)
                 {
-                    // Render only if air on top
-                    if (world.get_block(block.position + vector3(0, 1, 0)).type == block_type::AIR)
-                        chunk.gl_cache[2].push_back(block.to_opengl());
+                    if (block.type == block_type::WATER)
+                    {
+                        // Render only if air on top
+                        if (world.get_block(block.position + vector3(0, 1, 0)).type == block_type::AIR)
+                            chunk.gl_cache[2].push_back(block.to_opengl());
+                    }
+                    else if (block.type == block_type::LEAVES)
+                        chunk.gl_cache[1].push_back(block.to_opengl());
+                    else if (block.type == block_type::LOG)
+                        chunk.gl_cache[3].push_back(block.to_opengl());
+                    else if (block.visible)
+                        chunk.gl_cache[0].push_back(block.to_opengl());
                 }
-                else if (block.type == block_type::LEAVES)
-                    chunk.gl_cache[1].push_back(block.to_opengl());
-                else if (block.type == block_type::LOG)
-                    chunk.gl_cache[3].push_back(block.to_opengl());
-                else if (block.visible)
-                    chunk.gl_cache[0].push_back(block.to_opengl());
-            }
 
-        // Add blocks to VBO
-        gl_blocks.insert(gl_blocks.end(), chunk.gl_cache[0].begin(), chunk.gl_cache[0].end());
-        gl_leaves.insert(gl_leaves.end(), chunk.gl_cache[1].begin(), chunk.gl_cache[1].end());
-        gl_water.insert(gl_water.end(), chunk.gl_cache[2].begin(), chunk.gl_cache[2].end());
-        gl_log.insert(gl_log.end(), chunk.gl_cache[3].begin(), chunk.gl_cache[3].end());
+            // Add blocks to VBO
+            gl_blocks.insert(gl_blocks.end(), chunk.gl_cache[0].begin(), chunk.gl_cache[0].end());
+            gl_leaves.insert(gl_leaves.end(), chunk.gl_cache[1].begin(), chunk.gl_cache[1].end());
+            gl_water.insert(gl_water.end(), chunk.gl_cache[2].begin(), chunk.gl_cache[2].end());
+            gl_log.insert(gl_log.end(), chunk.gl_cache[3].begin(), chunk.gl_cache[3].end());
+        }
+
+        world.cached = true;
     }
 
     // Texture binding

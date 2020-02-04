@@ -24,6 +24,7 @@ namespace opengl_demo {
 
         entity player;
         std::unordered_map<vector3i, chunk, vector3i_hash> chunks;
+        bool cached = false;
         std::unique_ptr<std::shared_mutex> mutex = std::make_unique<std::shared_mutex>();
     };
     using world_t = world;
