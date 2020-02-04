@@ -1,5 +1,5 @@
 To install the dependencies, please type the following command
-git submodule --init
+git submodule update --init
 
 To build the projet
 mkdir build
