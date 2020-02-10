@@ -9,7 +9,7 @@ namespace opengl_demo {
     {
         block_renderer() = default;
         explicit block_renderer(GLuint _vao);
-        void render(const std::vector<gl_block>& blocks) const;
+        void render(const std::vector<gl_block>& blocks, bool cached) const;
 
         GLuint vao;
         GLuint vbo;

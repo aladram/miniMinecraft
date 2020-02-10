@@ -198,7 +198,8 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     glClearBufferfv(GL_COLOR, 2, inf_pos);
 
     static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
-    if (!world.cached)
+    const bool cached = world.cached;
+    if (!cached)
     {
         gl_blocks.clear();
         gl_leaves.clear();
@@ -244,9 +245,9 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     // Texture binding
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    world_renderer.render(gl_blocks);
-    leaves_renderer.render(gl_leaves);
-    water_renderer.render(gl_water);
+    world_renderer.render(gl_blocks, cached);
+    leaves_renderer.render(gl_leaves, cached);
+    water_renderer.render(gl_water, cached);
 
     program_3.use();
     program_3.put("view_proj", projection * view);
@@ -254,7 +255,7 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     program_3.put("dir_light", - vector3(1.f/2.f, std::sqrt(3.f)/2.f, 0));
     program_3.put("dir_light_color", vector3(0.7));
     program_3.put("tex", 0);
-    log_renderer.render(gl_log);
+    log_renderer.render(gl_log, cached);
 
     glReadBuffer(GL_COLOR_ATTACHMENT1);
     vector3 loc;

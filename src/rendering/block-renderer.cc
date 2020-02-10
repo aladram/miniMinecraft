@@ -24,12 +24,15 @@ block_renderer::block_renderer(GLuint _vao)
     glBindVertexArray(0);
 }
 
-void block_renderer::render(const std::vector<gl_block>& blocks) const
+void block_renderer::render(const std::vector<gl_block>& blocks, bool cached) const
 {
     glBindVertexArray(vao);
+      if (!cached)
+      {
       glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(gl_block) * blocks.size(), blocks.data(), GL_STATIC_DRAW);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
+      }
       glDrawArraysInstanced(GL_TRIANGLES, 0, 12 * 3, blocks.size());
     glBindVertexArray(0);
 }
