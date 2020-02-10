@@ -26,6 +26,7 @@ private:
         std::vector<gl_block> gl_leaves;
         std::vector<gl_block> gl_water;
         std::vector<gl_block> gl_log;
+        vector3 last_cached_pos = vector3(0);
         program_t program;
         program_t program_2;
         program_t program_3;

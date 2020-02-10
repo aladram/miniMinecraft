@@ -197,6 +197,10 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
     glClearBufferfv(GL_COLOR, 1, inf_pos);
     glClearBufferfv(GL_COLOR, 2, inf_pos);
 
+    // Flush cache if player moved too much
+    if (glm::distance(world.player.position, last_cached_pos) > std::sqrt(2.) * chunk_t::N)
+        world.cached = false;
+
     static constexpr float max_render_distance = 100.f + std::sqrt(2.) * chunk_t::N;
     const bool cached = world.cached;
     if (!cached)
@@ -240,6 +244,7 @@ void renderer::render(int new_width, int new_height, camera_t& camera)
         }
 
         world.cached = true;
+        last_cached_pos = world.player.position;
     }
 
     // Texture binding
