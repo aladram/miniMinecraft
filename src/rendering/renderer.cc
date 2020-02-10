@@ -77,8 +77,8 @@ renderer::renderer(world_t& _world)
 
     glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_BLEND);
-    glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnablei(GL_BLEND, 0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     program = program_t{compile_my_shaders()};
     program_2 = program_t{compile_my_shaders_2()};
